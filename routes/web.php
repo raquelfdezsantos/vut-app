@@ -26,6 +26,12 @@ Route::middleware(['auth','role:admin'])->group(function () {
     })->name('admin.dashboard');
 });
 
+// Rutas de cliente
+Route::middleware(['auth','role:customer'])->group(function () {
+    Route::get('/mis-reservas', function () {
+        return view('customer.bookings');
+    })->name('customer.bookings');
+});
 
 
 // Autenticación (Breeze)
