@@ -20,7 +20,7 @@ class InitialDataSeeder extends Seeder
             ['email' => 'admin@vut.test'],
             [
                 'name' => 'Admin',
-                'password' => Hash::make('password123'), // cámbiala luego
+                'password' => Hash::make('password123'), 
                 'role' => 'admin',
                 'phone' => '600000000',
             ]
@@ -43,7 +43,7 @@ class InitialDataSeeder extends Seeder
                 'description' => 'Alojamiento cómodo en el centro. Cerca de todo.',
                 'address' => 'Calle Mayor 1',
                 'city' => 'Madrid',
-                'capacity' => 4, // tu capacidad real
+                'capacity' => 4, 
             ]
         );
 

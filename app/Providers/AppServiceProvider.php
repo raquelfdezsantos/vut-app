@@ -3,22 +3,18 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Http\Middleware\EnsureUserHasRole;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        //
+        // Registro explícito del alias 'role' por si el Kernel no se carga 
+        $this->app['router']->aliasMiddleware('role', EnsureUserHasRole::class);
     }
 }
