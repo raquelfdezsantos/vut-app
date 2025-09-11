@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ReservationController;
 
 // Rutas públicas
 Route::get('/', function () {
@@ -31,6 +32,20 @@ Route::middleware(['auth','role:customer'])->group(function () {
     Route::get('/mis-reservas', function () {
         return view('customer.bookings');
     })->name('customer.bookings');
+});
+
+
+
+// Propiedad (pública): detalle + formulario reserva
+
+Route::get('/propiedad/{slug}', [ReservationController::class, 'create'])->name('property.show');
+
+
+// Cliente autenticado
+
+Route::middleware(['auth','role:customer'])->group(function () {
+    Route::post('/reservas', [ReservationController::class, 'store'])->name('reservations.store');
+    Route::get('/mis-reservas', [ReservationController::class, 'myBookings'])->name('customer.bookings');
 });
 
 
