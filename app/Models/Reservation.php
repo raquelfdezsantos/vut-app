@@ -16,11 +16,16 @@ class Reservation extends Model
         'total_price'
     ];
 
+    protected $casts = [
+        'check_in'  => 'date',
+        'check_out' => 'date',
+    ];
+
     public function property()
     {
         return $this->belongsTo(\App\Models\Property::class);
     }
-    
+
     public function user()
     {
         return $this->belongsTo(\App\Models\User::class);
