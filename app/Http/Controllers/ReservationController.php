@@ -12,25 +12,21 @@ use Illuminate\Support\Facades\DB;
 
 class ReservationController extends Controller
 {
-    /**
-     * Mostrar detalle de propiedad + formulario de reserva.
-     */
+    // Mostrar detalle de propiedad + formulario de reserva.
     public function create(string $slug)
     {
         $property = Property::with('photos')->where('slug', $slug)->firstOrFail();
         return view('property.show', compact('property'));
     }
 
-    /**
-     * Guardar la reserva (valida disponibilidad y calcula precio).
-     */
+    // Guardar la reserva (valida disponibilidad y calcula precio).
     public function store(StoreReservationRequest $request)
     {
         $data = $request->validated();
 
         $property = Property::findOrFail($data['property_id']);
 
-        // Reforzar capacidad (por si cambiaste el max del request)
+        // Reforzar capacidad (por si cambias el max en el request)
         if ((int)$data['guests'] > (int)$property->capacity) {
             return back()->withErrors(['guests' => "Máximo {$property->capacity} huéspedes."])->withInput();
         }
@@ -38,19 +34,31 @@ class ReservationController extends Controller
         // Periodo de noches (excluye la fecha de salida)
         $period = CarbonPeriod::create($data['check_in'], $data['check_out'])->excludeEndDate();
         $dates  = collect($period)->map(fn($d) => $d->toDateString());
+
         if ($dates->isEmpty()) {
-            return back()->withErrors(['check_in' => 'Rango de fechas inválido.'])->withInput();
+            // Esto cubre check_out == check_in si por cualquier motivo no lo paró el FormRequest
+            return back()->withErrors(['check_in' => 'La fecha de salida debe ser posterior a la de entrada.'])->withInput();
         }
+
+        // --- NUEVO: valida estancia mínima ANTES de mirar solapes/tarifas ---
+        $nights = $dates->count();
+        $minStayGlobal = 2; // política por defecto del alojamiento
+        if ($nights < $minStayGlobal) {
+            return back()->withErrors([
+                'check_in' => "La estancia mínima es de {$minStayGlobal} noches."
+            ])->withInput();
+        }
+        // -------------------------------------------------------------------
 
         // Solape con reservas existentes (no canceladas)
         $overlap = Reservation::where('property_id', $property->id)
             ->where(function ($q) use ($data) {
                 $q->whereBetween('check_in', [$data['check_in'], $data['check_out']])
-                  ->orWhereBetween('check_out', [$data['check_in'], $data['check_out']])
-                  ->orWhere(function ($q2) use ($data) {
-                      $q2->where('check_in', '<=', $data['check_in'])
-                         ->where('check_out', '>=', $data['check_out']);
-                  });
+                    ->orWhereBetween('check_out', [$data['check_in'], $data['check_out']])
+                    ->orWhere(function ($q2) use ($data) {
+                        $q2->where('check_in', '<=', $data['check_in'])
+                            ->where('check_out', '>=', $data['check_out']);
+                    });
             })
             ->whereNotIn('status', ['cancelled'])
             ->exists();
@@ -59,7 +67,7 @@ class ReservationController extends Controller
             return back()->withErrors(['check_in' => 'Las fechas seleccionadas no están disponibles.'])->withInput();
         }
 
-        // Calendario de tarifas
+        // Calendario de tarifas para cada noche del rango
         $rates = RateCalendar::where('property_id', $property->id)
             ->whereIn('date', $dates->all())
             ->get()
@@ -72,10 +80,12 @@ class ReservationController extends Controller
             }
         }
 
-        // Estancia mínima
-        $minStay = $rates->pluck('min_stay')->filter()->min() ?? 2;
-        if ($dates->count() < $minStay) {
-            return back()->withErrors(['check_in' => "La estancia mínima es de $minStay noches."])->withInput();
+        // Si además quieres respetar min_stay por-día (opcional):
+        $minStayFromRates = $rates->pluck('min_stay')->filter()->min();
+        if ($minStayFromRates && $nights < $minStayFromRates) {
+            return back()->withErrors([
+                'check_in' => "La estancia mínima para esas fechas es de {$minStayFromRates} noches."
+            ])->withInput();
         }
 
         // Precio total (sumatorio por noche)
@@ -94,12 +104,11 @@ class ReservationController extends Controller
             ]);
         });
 
-        return redirect()->route('customer.bookings')->with('status', 'Reserva creada. Total: '.$total.' €');
+        return redirect()->route('customer.bookings')->with('status', 'Reserva creada. Total: ' . $total . ' €');
     }
 
-    /**
-     * Listado de reservas del cliente autenticado.
-     */
+
+    // Listado de reservas del cliente autenticado.
     public function myBookings()
     {
         $reservations = Reservation::with('property')
@@ -108,5 +117,18 @@ class ReservationController extends Controller
             ->paginate(10);
 
         return view('customer.bookings', compact('reservations'));
+    }
+
+    // Listado de reservas del cliente autenticado (sin paginación)
+    public function index()
+    {
+        $userId = Auth::id(); // o auth()->id()
+
+        $reservations = Reservation::with('property')
+            ->where('user_id', $userId)
+            ->orderByDesc('check_in')
+            ->get();
+
+        return view('customer.bookings.index', compact('reservations'));
     }
 }
