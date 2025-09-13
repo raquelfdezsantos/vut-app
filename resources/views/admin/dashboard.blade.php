@@ -8,7 +8,7 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                Bienvenida, {{ auth()->user()->name }}. Aquí gestioné propiedad, fotos, calendario y reservas.
+                Bienvenida, {{ auth()->user()->name }}. <br> Aquí gestionaré propiedad, fotos, calendario y reservas.
             </div>
         </div>
     </div>

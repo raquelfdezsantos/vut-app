@@ -48,6 +48,11 @@ Route::middleware(['auth','role:customer'])->group(function () {
     Route::get('/mis-reservas', [ReservationController::class, 'myBookings'])->name('customer.bookings');
 });
 
+// Listar reservas cliente
+Route::middleware(['auth'])->group(function () {
+    Route::get('/mis-reservas', [ReservationController::class, 'index'])
+        ->name('customer.bookings');
+});
 
 // Autenticación (Breeze)
 require __DIR__.'/auth.php';
