@@ -12,11 +12,11 @@ Proyecto académico para 2º de DAW (septiembre - diciembre 2025).
 - Envío de facturas por correo en PDF.
 
 ## Tecnologías
-- PHP 8 + Laravel 12
+- PHP 8.2 + Laravel 12 (Breeze + Blade) + TailwindCSS + Vite
 - MySQL
-- HTML, CSS, Bootstrap
-- TypeScript
-- GitHub (control de versiones)
+- HTML & CSS
+- JavaScript / TypeScript (puntual, para componentes)
+- Git & GitHub (control de versiones)
 
 ## Estado
 En desarrollo...
