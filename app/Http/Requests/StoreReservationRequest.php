@@ -12,7 +12,7 @@ class StoreReservationRequest extends FormRequest
         // Debe estar logueado (cliente)
         return Auth::check();
     }
-
+    
     public function rules(): array
     {
         return [

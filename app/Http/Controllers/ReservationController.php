@@ -12,21 +12,36 @@ use Illuminate\Support\Facades\DB;
 
 class ReservationController extends Controller
 {
-    // Mostrar detalle de propiedad + formulario de reserva.
+    /**
+     * Muestra la ficha de una propiedad y su formulario de reserva.
+     *
+     * @param  string  $slug  Slug de la propiedad
+     * @return \Illuminate\Contracts\View\View
+     */
     public function create(string $slug)
     {
         $property = Property::with('photos')->where('slug', $slug)->firstOrFail();
         return view('property.show', compact('property'));
     }
 
-    // Guardar la reserva (valida disponibilidad y calcula precio).
+    /**
+     * Crea una reserva validando reglas de negocio y calculando el precio:
+     * - Capacidad máxima del alojamiento
+     * - Rango de fechas válido y estancia mínima
+     * - Ausencia de solapamientos con reservas existentes
+     * - Disponibilidad diaria en calendario de tarifas
+     * - Cálculo del total sumando el precio de cada noche
+     *
+     * @param  \App\Http\Requests\StoreReservationRequest  $request  Datos validados de la reserva
+     * @return \Illuminate\Http\RedirectResponse  Redirige al listado de reservas del cliente
+     */
     public function store(StoreReservationRequest $request)
     {
         $data = $request->validated();
 
         $property = Property::findOrFail($data['property_id']);
 
-        // Reforzar capacidad (por si cambias el max en el request)
+        // Reforzar capacidad (por si se cambia el max en el request)
         if ((int)$data['guests'] > (int)$property->capacity) {
             return back()->withErrors(['guests' => "Máximo {$property->capacity} huéspedes."])->withInput();
         }
@@ -40,19 +55,19 @@ class ReservationController extends Controller
             return back()->withErrors(['check_in' => 'La fecha de salida debe ser posterior a la de entrada.'])->withInput();
         }
 
-        // --- NUEVO: valida estancia mínima ANTES de mirar solapes/tarifas ---
+        // Valida estancia mínima ANTES de mirar solapes/tarifas ---
         $nights = $dates->count();
-        $minStayGlobal = 2; // política por defecto del alojamiento
+        $minStayGlobal = 2;
         if ($nights < $minStayGlobal) {
             return back()->withErrors([
                 'check_in' => "La estancia mínima es de {$minStayGlobal} noches."
             ])->withInput();
         }
-        // -------------------------------------------------------------------
 
         // Solape con reservas existentes (no canceladas)
         $overlap = Reservation::where('property_id', $property->id)
             ->where(function ($q) use ($data) {
+                // Tres condiciones de solape
                 $q->whereBetween('check_in', [$data['check_in'], $data['check_out']])
                     ->orWhereBetween('check_out', [$data['check_in'], $data['check_out']])
                     ->orWhere(function ($q2) use ($data) {
@@ -63,6 +78,7 @@ class ReservationController extends Controller
             ->whereNotIn('status', ['cancelled'])
             ->exists();
 
+        // Si hay solape, error
         if ($overlap) {
             return back()->withErrors(['check_in' => 'Las fechas seleccionadas no están disponibles.'])->withInput();
         }
@@ -73,6 +89,7 @@ class ReservationController extends Controller
             ->get()
             ->keyBy('date');
 
+        // Si no hay tarifa o no está disponible alguna noche, error
         foreach ($dates as $d) {
             $rate = $rates->get($d);
             if (!$rate || !$rate->is_available) {
@@ -80,7 +97,7 @@ class ReservationController extends Controller
             }
         }
 
-        // Si además quieres respetar min_stay por-día (opcional):
+        // Para respetar estancia mínima ANTES de crear la reserva
         $minStayFromRates = $rates->pluck('min_stay')->filter()->min();
         if ($minStayFromRates && $nights < $minStayFromRates) {
             return back()->withErrors([
@@ -108,7 +125,11 @@ class ReservationController extends Controller
     }
 
 
-    // Listado de reservas del cliente autenticado.
+    /**
+     * Lista las reservas del cliente autenticado (con paginación).
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
     public function myBookings()
     {
         $reservations = Reservation::with('property')
@@ -117,18 +138,5 @@ class ReservationController extends Controller
             ->paginate(10);
 
         return view('customer.bookings', compact('reservations'));
-    }
-
-    // Listado de reservas del cliente autenticado (sin paginación)
-    public function index()
-    {
-        $userId = Auth::id(); // o auth()->id()
-
-        $reservations = Reservation::with('property')
-            ->where('user_id', $userId)
-            ->orderByDesc('check_in')
-            ->get();
-
-        return view('customer.bookings.index', compact('reservations'));
     }
 }
