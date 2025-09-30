@@ -27,7 +27,7 @@
                     <tbody>
                     @foreach($reservations as $r)
                         <tr class="border-b">
-                            <td class="py-2">{{ $r->property->name }}</td>
+                            <<td class="py-2">{{ $r->property->name ?? $r->property->title }}</td>
                             <td class="py-2">{{ $r->check_in->format('d/m/Y') }}</td>
                             <td class="py-2">{{ $r->check_out->format('d/m/Y') }}</td>
                             <td class="py-2">{{ $r->guests }}</td>

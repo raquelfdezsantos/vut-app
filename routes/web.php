@@ -1,18 +1,30 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\PropertyController;
 
-// Rutas públicas
-Route::get('/', function () {
-    return view('welcome');
-});
+/*
+|--------------------------------------------------------------------------
+| Rutas públicas
+|--------------------------------------------------------------------------
+*/
+Route::get('/', fn () => view('welcome'))->name('home');
 
-// Rutas protegidas con middleware de autenticación y verificación (Breeze)
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+/** Propiedades (listado + ficha) */
+Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
+Route::get('/propiedad/{property:slug}', [PropertyController::class, 'show'])->name('properties.show');
+
+
+/*
+|--------------------------------------------------------------------------
+| Rutas protegidas (Breeze)
+|--------------------------------------------------------------------------
+*/
+Route::get('/dashboard', fn () => view('dashboard'))
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -20,39 +32,35 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Rutas de administración
+
+/*
+|--------------------------------------------------------------------------
+| Área admin
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth','role:admin'])->group(function () {
-    Route::get('/admin', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
+    Route::get('/admin', fn () => view('admin.dashboard'))->name('admin.dashboard');
 });
 
-// Rutas de cliente
+
+/*
+|--------------------------------------------------------------------------
+| Cliente (reservas)
+|--------------------------------------------------------------------------
+*/
+// Recomendado: exigir rol "customer". Si quieres permitir a cualquier autenticado, quita "role:customer".
 Route::middleware(['auth','role:customer'])->group(function () {
-    Route::get('/mis-reservas', function () {
-        return view('customer.bookings');
-    })->name('customer.bookings');
+    // Listado de reservas del cliente
+    Route::get('/mis-reservas', [ReservationController::class, 'index'])->name('reservas.index');
+
+    // Crear reserva (POST desde la ficha de propiedad)
+    Route::post('/reservas', [ReservationController::class, 'store'])->name('reservas.store');
 });
 
 
-
-// Propiedad (pública): detalle + formulario reserva
-
-Route::get('/propiedad/{slug}', [ReservationController::class, 'create'])->name('property.show');
-
-
-// Cliente autenticado
-
-Route::middleware(['auth','role:customer'])->group(function () {
-    Route::post('/reservas', [ReservationController::class, 'store'])->name('reservations.store');
-    Route::get('/mis-reservas', [ReservationController::class, 'myBookings'])->name('customer.bookings');
-});
-
-// Listar reservas cliente
-Route::middleware(['auth'])->group(function () {
-    Route::get('/mis-reservas', [ReservationController::class, 'index'])
-        ->name('customer.bookings');
-});
-
-// Autenticación (Breeze)
+/*
+|--------------------------------------------------------------------------
+| Auth (Breeze)
+|--------------------------------------------------------------------------
+*/
 require __DIR__.'/auth.php';

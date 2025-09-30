@@ -25,7 +25,7 @@ class RedirectIfAuthenticated
         // Para diferenciar por rol:
         return $user->role === 'admin'
             ? redirect()->route('admin.dashboard')
-            : redirect()->route('customer.bookings'); 
+            : redirect()->route('reservas.index'); 
     }
 
     return $next($request);

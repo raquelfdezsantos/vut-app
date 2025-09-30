@@ -11,9 +11,9 @@ class Property extends Model
         return $this->hasMany(\App\Models\Photo::class);
     }
 
-    public function rateCalendars()
+    public function rateCalendar()
     {
-        return $this->hasMany(\App\Models\RateCalendar::class);
+        return $this->hasMany(RateCalendar::class, 'property_id');
     }
     
     public function reservations()

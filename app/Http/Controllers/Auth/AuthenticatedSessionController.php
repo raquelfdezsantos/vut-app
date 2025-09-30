@@ -34,7 +34,7 @@ class AuthenticatedSessionController extends Controller
         }
 
         // customer por defecto
-        return redirect()->intended(route('customer.bookings'));
+        return redirect()->intended(route('reservas.index'));
     }
 
     /**
