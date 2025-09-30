@@ -25,13 +25,6 @@
                 · Capacidad: {{ $property->capacity }} huéspedes
             </div>
 
-            {{-- OPCIONAL: Precio "desde" (si el controlador te pasa $fromPrice) --}}
-            @isset($fromPrice)
-                <p class="text-lg font-semibold text-green-600 mb-4">
-                    Desde {{ $fromPrice }} €/noche
-                </p>
-            @endisset
-
             @auth
                 <form method="POST" action="{{ route('reservas.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     @csrf
