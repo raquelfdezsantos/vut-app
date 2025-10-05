@@ -5,14 +5,30 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * Request de validación de reservas.
+ *
+ * Contiene las reglas necesarias para validar las solicitudes de reserva:
+ * fechas válidas, capacidad máxima, estancia mínima y disponibilidad del alojamiento.
+ */
 class StoreReservationRequest extends FormRequest
 {
+    /**
+     * Determina si el usuario está autorizado para realizar la reserva.
+     *
+     * @return bool
+     */
     public function authorize(): bool
     {
-        // Debe estar logueado (cliente)
+        // Solo los usuarios autenticados pueden realizar reservas.
         return Auth::check();
     }
     
+    /**
+     * Reglas de validación aplicadas a la solicitud de reserva.
+     *
+     * @return array<string, array<int, string>>
+     */
     public function rules(): array
     {
         return [
@@ -23,6 +39,11 @@ class StoreReservationRequest extends FormRequest
         ];
     }
 
+    /**
+     * Mensajes de error personalizados para las reglas de validación.
+     *
+     * @return array<string, string>
+     */
     public function messages(): array
     {
         return [

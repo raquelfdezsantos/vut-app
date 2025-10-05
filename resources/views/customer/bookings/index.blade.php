@@ -5,6 +5,7 @@
         </h2>
     </x-slot>
 
+    {{-- MENSAJE CUANDO NO HAY RESERVAS --}}
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         @if($reservations->isEmpty())
             <div class="bg-white p-6 rounded shadow mt-4">
@@ -12,6 +13,7 @@
                 <a href="{{ url('/') }}" class="text-indigo-600 underline">Ir a la propiedad</a>
             </div>
         @else
+            {{-- LISTADO DE RESERVAS --}}
             <div class="bg-white p-6 rounded shadow mt-4 overflow-x-auto">
                 <table class="min-w-full">
                     <thead>
@@ -25,6 +27,7 @@
                     </tr>
                     </thead>
                     <tbody>
+                    {{-- FILA DE RESERVA --}}
                     @foreach($reservations as $r)
                         <tr class="border-b">
                             <<td class="py-2">{{ $r->property->name ?? $r->property->title }}</td>

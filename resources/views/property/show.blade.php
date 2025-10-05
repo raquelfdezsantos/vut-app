@@ -3,7 +3,7 @@
         <h1 class="text-2xl font-bold mt-3 mb-3">{{ $property->name ?? $property->title }}</h1>
 
         @if($property->photos->count())
-            {{-- GRID TEMPORAL (luego lo cambiaremos por carrusel) --}}
+            {{-- GRID TEMPORAL (se cambiará por carrusel) --}}
             <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                 @foreach($property->photos->sortBy('sort_order') as $photo)
                     <img
@@ -16,6 +16,7 @@
             </div>
         @endif
 
+        {{-- DESCRIPCIÓN --}}
         <div class="bg-white shadow sm:rounded-xl p-5 mt-4">
             <p class="mb-3 text-gray-700">{{ $property->description }}</p>
 
@@ -25,6 +26,7 @@
                 · Capacidad: {{ $property->capacity }} huéspedes
             </div>
 
+            {{-- FORMULARIO DE RESERVA --}}
             @auth
                 <form method="POST" action="{{ route('reservas.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     @csrf
@@ -55,6 +57,7 @@
                     </div>
                 </form>
             @else
+                {{-- ENLACE A INICIO DE SESIÓN --}}
                 <a href="{{ route('login') }}" class="text-indigo-600 underline">Inicia sesión para reservar</a>
             @endauth
         </div>

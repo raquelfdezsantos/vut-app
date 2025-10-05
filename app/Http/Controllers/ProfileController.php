@@ -9,6 +9,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
+/**
+ * Controlador de perfil de usuario.
+ *
+ * Permite a los clientes editar sus datos personales, subir un avatar
+ * y consultar sus reservas y facturas en la sección "Mi perfil".
+ */
 class ProfileController extends Controller
 {
     /**

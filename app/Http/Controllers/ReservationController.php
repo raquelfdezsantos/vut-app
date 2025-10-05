@@ -10,6 +10,13 @@ use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Controlador de reservas.
+ *
+ * Gestiona la creación, validación y visualización de reservas tanto
+ * para clientes como para el administrador. Controla las reglas de negocio
+ * sobre disponibilidad, estancia mínima, solapamientos y capacidad máxima.
+ */
 class ReservationController extends Controller
 {
     /**
@@ -107,7 +114,6 @@ class ReservationController extends Controller
             return back()->withErrors(['check_in' => "La estancia mínima para esas fechas es de {$minStayFromRates} noches."])->withInput();
         }
 
-        // Ojo: tu modelo parece usar 'price' en RateCalendar. Si fuera 'price_per_night', cambia aquí.
         $total = $rates->sum('price');
 
         DB::transaction(function () use ($data, $property, $total) {

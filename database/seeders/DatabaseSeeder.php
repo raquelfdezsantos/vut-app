@@ -2,14 +2,20 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
+/**
+ * Seeder principal de la base de datos.
+ *
+ * Ejecuta los seeders necesarios para inicializar el entorno de desarrollo
+ * con usuarios, propiedades, fotos y calendario de tarifas.
+ */
 class DatabaseSeeder extends Seeder
 {
     /**
-     * Seed the application's database.
+     * Ejecuta los seeders definidos en la aplicación.
+     *
+     * @return void
      */
     public function run(): void
     {

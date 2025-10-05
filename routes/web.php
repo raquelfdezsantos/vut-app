@@ -6,9 +6,7 @@ use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\PropertyController;
 
 /*
-|--------------------------------------------------------------------------
-| Rutas públicas
-|--------------------------------------------------------------------------
+* Rutas públicas
 */
 Route::get('/', fn () => view('welcome'))->name('home');
 
@@ -18,9 +16,7 @@ Route::get('/propiedad/{property:slug}', [PropertyController::class, 'show'])->n
 
 
 /*
-|--------------------------------------------------------------------------
-| Rutas protegidas (Breeze)
-|--------------------------------------------------------------------------
+* Rutas protegidas (Breeze)
 */
 Route::get('/dashboard', fn () => view('dashboard'))
     ->middleware(['auth', 'verified'])
@@ -34,9 +30,7 @@ Route::middleware('auth')->group(function () {
 
 
 /*
-|--------------------------------------------------------------------------
-| Área admin
-|--------------------------------------------------------------------------
+* Área admin
 */
 Route::middleware(['auth','role:admin'])->group(function () {
     Route::get('/admin', fn () => view('admin.dashboard'))->name('admin.dashboard');
@@ -44,11 +38,9 @@ Route::middleware(['auth','role:admin'])->group(function () {
 
 
 /*
-|--------------------------------------------------------------------------
-| Cliente (reservas)
-|--------------------------------------------------------------------------
+* Cliente (reservas)
 */
-// Recomendado: exigir rol "customer". Si quieres permitir a cualquier autenticado, quita "role:customer".
+// Recomendado: exigir rol "customer".
 Route::middleware(['auth','role:customer'])->group(function () {
     // Listado de reservas del cliente
     Route::get('/mis-reservas', [ReservationController::class, 'index'])->name('reservas.index');
@@ -59,8 +51,6 @@ Route::middleware(['auth','role:customer'])->group(function () {
 
 
 /*
-|--------------------------------------------------------------------------
-| Auth (Breeze)
-|--------------------------------------------------------------------------
+* Auth (Breeze)
 */
 require __DIR__.'/auth.php';

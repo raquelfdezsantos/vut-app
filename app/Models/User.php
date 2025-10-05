@@ -2,20 +2,24 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * Modelo User.
+ *
+ * Representa a los usuarios del sistema, que pueden ser clientes o administradores.
+ * Gestiona la autenticación, notificaciones y relaciones con sus reservas.
+ */
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
     /**
-     * The attributes that are mass assignable.
+     * Atributos que pueden asignarse masivamente.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
         'name',
@@ -24,9 +28,9 @@ class User extends Authenticatable
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
+     * Atributos ocultos al serializar el modelo.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -34,7 +38,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * Conversión automática de atributos a tipos nativos.
      *
      * @return array<string, string>
      */

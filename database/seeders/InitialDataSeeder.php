@@ -4,18 +4,28 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Property;
 use App\Models\Photo;
 use App\Models\RateCalendar;
 
+/**
+ * Seeder de datos iniciales para entorno de desarrollo.
+ *
+ * Crea usuarios demo (admin y cliente), una propiedad base con fotos
+ * y un calendario de tarifas para los próximos 30 días.
+ */
 class InitialDataSeeder extends Seeder
 {
+    /**
+     * Ejecuta la inserción de datos base.
+     *
+     * @return void
+     */
     public function run(): void
     {
-        // 1) Admin y cliente demo
+        // Creación de administrador
         User::updateOrCreate(
             ['email' => 'admin@vut.test'],
             [
@@ -26,6 +36,7 @@ class InitialDataSeeder extends Seeder
             ]
         );
 
+        // Creación de usuario cliente
         User::updateOrCreate(
             ['email' => 'cliente@vut.test'],
             [
@@ -35,7 +46,7 @@ class InitialDataSeeder extends Seeder
             ]
         );
 
-        // 2) Propiedad base
+        // Propiedad de ejemplo
         $property = Property::updateOrCreate(
             ['slug' => 'piso-turistico-centro'],
             [
@@ -47,12 +58,13 @@ class InitialDataSeeder extends Seeder
             ]
         );
 
-        // 3) Fotos (usa URLs de prueba por ahora)
+        // Fotos de ejemplo
         $photos = [
             ['url' => 'https://picsum.photos/seed/vut1/1200/800', 'is_cover' => true,  'sort_order' => 1],
             ['url' => 'https://picsum.photos/seed/vut2/1200/800', 'is_cover' => false, 'sort_order' => 2],
             ['url' => 'https://picsum.photos/seed/vut3/1200/800', 'is_cover' => false, 'sort_order' => 3],
         ];
+
         foreach ($photos as $p) {
             Photo::updateOrCreate(
                 ['property_id' => $property->id, 'url' => $p['url']],
@@ -60,12 +72,12 @@ class InitialDataSeeder extends Seeder
             );
         }
 
-        // 4) Calendario de precios para los próximos 30 días
+        // Calendario de precios (30 días)
         $today = Carbon::today();
         for ($i = 0; $i < 30; $i++) {
             $date = $today->copy()->addDays($i);
             $isWeekend = $date->isWeekend();
-            $price = $isWeekend ? 120.00 : 95.00; // ejemplo: finde más caro
+            $price = $isWeekend ? 120.00 : 95.00;
 
             RateCalendar::updateOrCreate(
                 ['property_id' => $property->id, 'date' => $date->toDateString()],
