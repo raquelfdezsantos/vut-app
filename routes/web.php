@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\AdminController;
 
 /*
 * Rutas públicas
@@ -50,6 +51,24 @@ Route::middleware(['auth','role:customer'])->group(function () {
 });
 
 
+/*
+ * -----------------------------------------------------------------------------
+ * Rutas de administración
+ *
+ * Prefijo /admin, nombre admin.*, controlador AdminController.
+ * Requiere middleware de autenticación y rol 'admin'.
+ */
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/', [AdminController::class, 'index'])->name('dashboard');
+        Route::post('/reservations/{id}/cancel', [AdminController::class, 'cancel'])
+            ->name('reservations.cancel');
+    });
+
+
+    
 /*
 * Auth (Breeze)
 */
