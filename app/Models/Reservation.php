@@ -9,6 +9,16 @@ use Illuminate\Database\Eloquent\Model;
  *
  * Representa una reserva realizada por un usuario sobre una propiedad.
  * Contiene información sobre fechas, huéspedes, precio total y estado.
+ * 
+ * @property \Illuminate\Support\Carbon $check_in
+ * @property \Illuminate\Support\Carbon $check_out
+ * @property int $user_id
+ * @property int $property_id
+ * @property int $guests
+ * @property string $status
+ * @property float $total_price
+ *
+ * @mixin \Eloquent
  */
 class Reservation extends Model
 {
