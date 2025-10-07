@@ -1,5 +1,20 @@
 * text=auto eol=lf
 
+# Normaliza saltos de línea a LF en archivos de texto
+*.php          text eol=lf
+*.blade.php    text eol=lf
+*.js           text eol=lf
+*.ts           text eol=lf
+*.css          text eol=lf
+*.scss         text eol=lf
+*.json         text eol=lf
+*.md           text eol=lf
+*.yml          text eol=lf
+*.yaml         text eol=lf
+*.env          text eol=lf
+*.sql          text eol=lf
+
+
 *.blade.php diff=html
 *.css diff=css
 *.html diff=html
