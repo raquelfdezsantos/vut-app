@@ -66,4 +66,24 @@ class Reservation extends Model
     {
         return $this->belongsTo(\App\Models\User::class);
     }
+
+     /**
+     * Relación: una reserva tiene una factura.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<Invoice>
+     */
+    public function invoice()
+    {
+        return $this->hasOne(\App\Models\Invoice::class);
+    }
+
+    /**
+     * Relación: una reserva puede tener múltiples pagos.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Payment>
+     */
+    public function payments()
+    {
+        return $this->hasMany(\App\Models\Payment::class);
+    }
 }

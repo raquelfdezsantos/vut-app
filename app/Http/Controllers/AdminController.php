@@ -34,8 +34,7 @@ class AdminController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Reservation::with(['user', 'property'])
-            ->latest();
+        $query = Reservation::with(['user', 'property', 'invoice'])->latest();
 
         if ($status = $request->string('status')->toString()) {
             $query->where('status', $status);

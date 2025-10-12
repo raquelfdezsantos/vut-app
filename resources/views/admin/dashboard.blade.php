@@ -5,8 +5,16 @@
         </h2>
     </x-slot>
 
+    <div class="mb-4 flex gap-2">
+        <a href="{{ route('admin.property.index') }}" class="px-3 py-1 rounded bg-gray-100 border text-sm">Propiedad</a>
+        <a href="{{ route('admin.photos.index') }}" class="px-3 py-1 rounded bg-gray-100 border text-sm">Fotos</a>
+        <a href="{{ route('admin.calendar.index') }}"
+            class="px-3 py-1 rounded bg-gray-100 border text-sm">Calendario</a>
+    </div>
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+
             @if (session('success'))
                 <div class="mb-4 p-3 bg-green-100 text-green-700 rounded">{{ session('success') }}</div>
             @endif
@@ -29,6 +37,8 @@
                                 <th class="p-3">Propiedad</th>
                                 <th class="p-3">Check-in</th>
                                 <th class="p-3">Check-out</th>
+                                <th class="p-3">Huéspedes</th>
+                                <th class="p-3">Total</th>
                                 <th class="p-3">Estado</th>
                                 <th class="p-3">Acciones</th>
                             </tr>
@@ -41,16 +51,33 @@
                                     <td class="p-3">{{ $r->property?->name ?? '—' }}</td>
                                     <td class="p-3">{{ $r->check_in->format('Y-m-d') }}</td>
                                     <td class="p-3">{{ $r->check_out->format('Y-m-d') }}</td>
+                                    <td class="p-3">{{ $r->guests }}</td> 
+                                    <td class="p-3">{{ number_format($r->total_price, 2, ',', '.') }} €</td> 
                                     <td class="p-3">{{ ucfirst($r->status) }}</td>
                                     <td class="p-3">
                                         @if($r->status === 'pending')
-                                            <form method="POST" action="{{ route('admin.reservations.cancel', $r->id) }}">
-                                                @csrf
-                                                <button class="px-3 py-1 rounded bg-red-600 text-white text-sm"
-                                                    onclick="return confirm('¿Cancelar esta reserva y reponer noches?')">
-                                                    Cancelar
-                                                </button>
-                                            </form>
+                                            <div class="flex gap-2">
+                                                <form method="POST" action="{{ route('reservations.pay', $r->id) }}">
+                                                    @csrf
+                                                    <button class="px-3 py-1 rounded bg-indigo-600 text-white text-sm"
+                                                        onclick="return confirm('¿Marcar como pagada y generar factura?')">
+                                                        Marcar pagada
+                                                    </button>
+                                                </form>
+
+                                                <form method="POST" action="{{ route('admin.reservations.cancel', $r->id) }}">
+                                                    @csrf
+                                                    <button class="px-3 py-1 rounded bg-red-600 text-white text-sm"
+                                                        onclick="return confirm('¿Cancelar esta reserva y reponer noches?')">
+                                                        Cancelar
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        @elseif($r->status === 'paid' && $r->invoice)
+                                            <a class="px-3 py-1 rounded bg-gray-800 text-white text-sm"
+                                                href="{{ route('invoices.show', $r->invoice->number) }}">
+                                                Ver factura
+                                            </a>
                                         @else
                                             —
                                         @endif
@@ -58,11 +85,12 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td class="p-3" colspan="7">No hay reservas.</td>
+                                    <td class="p-3" colspan="9">No hay reservas.</td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
+
 
                     <div class="mt-4">
                         {{ $reservations->links() }}

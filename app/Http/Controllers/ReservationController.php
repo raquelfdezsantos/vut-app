@@ -32,18 +32,17 @@ class ReservationController extends Controller
     }
 
 
-    /** LISTADO de reservas del cliente */
+    /** Listado de reservas del cliente */
     public function index()
     {
-        $reservations = Reservation::with('property')
+        $reservations = Reservation::with(['property', 'invoice'])
             ->where('user_id', Auth::id())
             ->latest('check_in')
             ->paginate(10);
 
-        // Usa la vista que tienes en carpeta:
+        // Usa la vista que hay en carpeta:
         return view('customer.bookings.index', compact('reservations'));
-        // Si prefieres la otra:
-        // return view('customer.bookings', compact('reservations'));
+        
     }
 
 
@@ -128,7 +127,7 @@ class ReservationController extends Controller
             ]);
         });
 
-        // Redirige a la ruta en español (ver rutas abajo)
+        // Redirige a la ruta en español
         return redirect()->route('reservas.index')
             ->with('status', 'Reserva creada. Total: ' . number_format($total, 2, ',', '.') . ' €');
     }
