@@ -30,7 +30,7 @@ class InitialDataSeeder extends Seeder
             ['email' => 'admin@vut.test'],
             [
                 'name' => 'Admin',
-                'password' => Hash::make('password123'), 
+                'password' => Hash::make('password123'),
                 'role' => 'admin',
                 'phone' => '600000000',
             ]
@@ -54,7 +54,7 @@ class InitialDataSeeder extends Seeder
                 'description' => 'Alojamiento cómodo en el centro. Cerca de todo.',
                 'address' => 'Calle Mayor 1',
                 'city' => 'Madrid',
-                'capacity' => 4, 
+                'capacity' => 4,
             ]
         );
 
@@ -72,9 +72,11 @@ class InitialDataSeeder extends Seeder
             );
         }
 
-        // Calendario de precios (30 días)
+        // Calendario de precios (180 días)
         $today = Carbon::today();
-        for ($i = 0; $i < 30; $i++) {
+        $days  = 180;
+
+        for ($i = 0; $i < $days; $i++) {
             $date = $today->copy()->addDays($i);
             $isWeekend = $date->isWeekend();
             $price = $isWeekend ? 120.00 : 95.00;

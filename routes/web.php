@@ -7,6 +7,10 @@ use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\InvoiceController;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PaymentReceiptMail;
+use App\Models\Reservation;
+use App\Models\Invoice;
 
 /*
 |--------------------------------------------------------------------------
@@ -64,9 +68,6 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
     Route::get('/mis-reservas', [ReservationController::class, 'index'])->name('reservas.index');
     // Crear reserva (POST desde ficha)
     Route::post('/reservas', [ReservationController::class, 'store'])->name('reservas.store');
-
-    // Pago simulado (coherente con PaymentController::pay)
-    Route::post('/pagos/{reservation}/simular', [PaymentController::class, 'pay'])->name('payments.pay');
 });
 
 /*
@@ -78,6 +79,15 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/reservations/{id}/pay', [PaymentController::class, 'pay'])->name('reservations.pay');
     Route::get('/invoices/{number}', [InvoiceController::class, 'show'])->name('invoices.show');
 });
+
+// Ruta de prueba envío email con Mailtrap
+Route::get('/dev/test-payment-mail', function () {
+    $reservation = Reservation::with(['user','property'])->latest()->firstOrFail();
+    $invoice = Invoice::where('reservation_id', $reservation->id)->latest()->firstOrFail();
+    \Mail::to('cliente@vut.test')->send(new PaymentReceiptMail($reservation, $invoice));
+    return 'OK sent';
+});
+
 
 /*
 |--------------------------------------------------------------------------

@@ -9,6 +9,10 @@ use App\Models\RateCalendar;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ReservationConfirmedMail;
+use App\Mail\AdminNewReservationMail;
+use Carbon\Carbon;
 
 /**
  * Controlador de reservas.
@@ -42,7 +46,6 @@ class ReservationController extends Controller
 
         // Usa la vista que hay en carpeta:
         return view('customer.bookings.index', compact('reservations'));
-        
     }
 
 
@@ -80,21 +83,40 @@ class ReservationController extends Controller
             return back()->withErrors(['check_in' => "La estancia mínima es de {$minStayGlobal} noches."])->withInput();
         }
 
+        // --- Fallback: crear filas que falten en RateCalendar para el rango ---
+        $missingDates = $dates->filter(function ($d) use ($property) {
+            return !RateCalendar::where('property_id', $property->id)
+                ->whereDate('date', $d)
+                ->exists();
+        });
+
+        foreach ($missingDates as $d) {
+            $dateObj = Carbon::parse($d);
+            $price = $dateObj->isWeekend() ? 120.00 : 95.00;
+            RateCalendar::create([
+                'property_id'  => $property->id,
+                'date'         => $d,
+                'price'        => $price,
+                'is_available' => true,
+                'min_stay'     => 2,
+            ]);
+        }
+        // ---------------------------------------------------------------------
+
         $overlap = Reservation::where('property_id', $property->id)
-            ->where(function ($q) use ($data) {
-                $q->whereBetween('check_in', [$data['check_in'], $data['check_out']])
-                  ->orWhereBetween('check_out', [$data['check_in'], $data['check_out']])
-                  ->orWhere(function ($q2) use ($data) {
-                      $q2->where('check_in', '<=', $data['check_in'])
-                         ->where('check_out', '>=', $data['check_out']);
-                  });
-            })
             ->whereNotIn('status', ['cancelled'])
+            ->where(function ($q) use ($data) {
+                $q->where('check_in',  '<', $data['check_out'])
+                    ->where('check_out', '>', $data['check_in']);
+            })
             ->exists();
 
         if ($overlap) {
-            return back()->withErrors(['check_in' => 'Las fechas seleccionadas no están disponibles.'])->withInput();
+            return back()
+                ->withErrors(['check_in' => 'Las fechas seleccionadas no están disponibles.'])
+                ->withInput();
         }
+
 
         $rates = RateCalendar::where('property_id', $property->id)
             ->whereIn('date', $dates->all())
@@ -115,8 +137,9 @@ class ReservationController extends Controller
 
         $total = $rates->sum('price');
 
-        DB::transaction(function () use ($data, $property, $total) {
-            Reservation::create([
+        // Transacción: crear reserva + marcar noches como NO disponibles
+        $reservation = DB::transaction(function () use ($data, $property, $total) {
+            $reservation = Reservation::create([
                 'user_id'     => Auth::id(),
                 'property_id' => $property->id,
                 'check_in'    => $data['check_in'],
@@ -125,12 +148,36 @@ class ReservationController extends Controller
                 'status'      => 'pending',
                 'total_price' => $total,
             ]);
+
+            // Bloquear noches [check_in, check_out)
+            $period = CarbonPeriod::create($data['check_in'], $data['check_out'])->excludeEndDate();
+            foreach ($period as $d) {
+                RateCalendar::where('property_id', $property->id)
+                    ->whereDate('date', $d->toDateString())
+                    ->update(['is_available' => false]);
+            }
+
+            return $reservation;
         });
 
-        // Redirige a la ruta en español
+
+        // Emails (no romper si falla SMTP)
+        try {
+            Mail::to($reservation->user->email)->send(new ReservationConfirmedMail($reservation));
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        try {
+            Mail::to('admin@vut.test')->send(new AdminNewReservationMail($reservation));
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         return redirect()->route('reservas.index')
             ->with('status', 'Reserva creada. Total: ' . number_format($total, 2, ',', '.') . ' €');
     }
+
 
 
     /**
@@ -147,7 +194,4 @@ class ReservationController extends Controller
 
         return view('customer.bookings', compact('reservations'));
     }
-
-
-
 }

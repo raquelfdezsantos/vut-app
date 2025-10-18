@@ -28,7 +28,7 @@ class Invoice extends Model
         'reservation_id',
         'number',
         'pdf_path',
-        'issued_at' => 'datetime',
+        'issued_at',
         'amount',
     ];
 
@@ -39,6 +39,7 @@ class Invoice extends Model
      */
     protected $casts = [
         'issued_at' => 'datetime',
+        'amount'    => 'decimal:2',
     ];
 
     /**

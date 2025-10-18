@@ -28,7 +28,8 @@
 
             {{-- FORMULARIO DE RESERVA --}}
             @auth
-                <form method="POST" action="{{ route('reservas.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <form method="POST" action="{{ route('reservas.store') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
                     @csrf
                     <input type="hidden" name="property_id" value="{{ $property->id }}">
 
