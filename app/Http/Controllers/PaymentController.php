@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use App\Mail\PaymentReceiptMail;
 use Illuminate\Support\Facades\Log;
+use App\Mail\AdminPaymentNotificationMail;
 
 class PaymentController extends Controller
 {
@@ -56,11 +57,15 @@ class PaymentController extends Controller
                 new PaymentReceiptMail($reservation, $invoice)
             );
         } catch (\Throwable $e) {
-            \Log::error('Fallo enviando PaymentReceiptMail', [
-                'msg'  => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]);
+            \Log::error('Fallo enviando PaymentReceiptMail', ['msg' => $e->getMessage()]);
+        }
+
+        try {
+            \Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))->send(
+                new AdminPaymentNotificationMail($reservation, $invoice)
+            );
+        } catch (\Throwable $e) {
+            \Log::error('Fallo enviando AdminPaymentNotificationMail', ['msg' => $e->getMessage()]);
         }
 
         return back()->with('success', 'Pago simulado realizado y factura generada.');

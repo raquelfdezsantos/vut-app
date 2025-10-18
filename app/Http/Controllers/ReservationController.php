@@ -169,7 +169,8 @@ class ReservationController extends Controller
         }
 
         try {
-            Mail::to('admin@vut.test')->send(new AdminNewReservationMail($reservation));
+            Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))
+                ->send(new AdminNewReservationMail($reservation));
         } catch (\Throwable $e) {
             report($e);
         }
