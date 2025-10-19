@@ -8,9 +8,16 @@ use App\Models\Payment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 use App\Mail\PaymentReceiptMail;
+use App\Mail\PaymentBalanceSettledMail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\AdminPaymentNotificationMail;
+use App\Mail\AdminPaymentBalanceSettledMail;
+use App\Mail\ReservationUpdatedMail;
+use App\Mail\ReservationCancelledMail;
+use App\Mail\PaymentRefundIssuedMail;
+use App\Mail\PaymentBalanceDueMail;
 
 class PaymentController extends Controller
 {
@@ -51,23 +58,63 @@ class PaymentController extends Controller
         // Cargamos por si faltaran relaciones
         $reservation->loadMissing(['user', 'property']);
 
-        // Enviar email con vista (no romper si falla)
+        // Enviar emails (cliente y admin), no romper si falla
         try {
-            \Mail::to($reservation->user->email)->send(
+            Mail::to($reservation->user->email)->send(
                 new PaymentReceiptMail($reservation, $invoice)
             );
         } catch (\Throwable $e) {
-            \Log::error('Fallo enviando PaymentReceiptMail', ['msg' => $e->getMessage()]);
+            Log::error('Fallo enviando PaymentReceiptMail', ['msg' => $e->getMessage()]);
         }
 
         try {
-            \Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))->send(
+            Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))->send(
                 new AdminPaymentNotificationMail($reservation, $invoice)
             );
         } catch (\Throwable $e) {
-            \Log::error('Fallo enviando AdminPaymentNotificationMail', ['msg' => $e->getMessage()]);
+            Log::error('Fallo enviando AdminPaymentNotificationMail', ['msg' => $e->getMessage()]);
         }
 
         return back()->with('success', 'Pago simulado realizado y factura generada.');
+    }
+
+
+    public function payDifference(int $reservationId)
+    {
+        $reservation = Reservation::with(['user', 'property', 'payments'])->findOrFail($reservationId);
+    abort_unless($reservation->user_id === Auth::id() || (Auth::user() && Auth::user()->role === 'admin'), 403);
+
+        $balance = $reservation->balanceDue();
+        if ($balance <= 0.0) {
+            return back()->with('status', 'No hay importe pendiente.');
+        }
+
+        DB::transaction(function () use ($reservation, $balance) {
+            Payment::create([
+                'reservation_id' => $reservation->id,
+                'amount'        => $balance,
+                'method'        => 'simulated',
+                'status'        => 'succeeded',
+                'provider_ref'  => 'SIM-ADD-' . Str::upper(Str::random(6)),
+            ]);
+        });
+
+        // Emails (cliente y admin), no romper si falla
+        try {
+            Mail::to($reservation->user->email)->send(
+                new PaymentBalanceSettledMail($reservation, $balance)
+            );
+        } catch (\Throwable $e) {
+            Log::error('Fallo enviando PaymentBalanceSettledMail', ['msg' => $e->getMessage()]);
+        }
+        try {
+            Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))->send(
+                new AdminPaymentBalanceSettledMail($reservation, $balance)
+            );
+        } catch (\Throwable $e) {
+            Log::error('Fallo enviando AdminPaymentBalanceSettledMail', ['msg' => $e->getMessage()]);
+        }
+
+        return back()->with('success', 'Diferencia abonada correctamente.');
     }
 }

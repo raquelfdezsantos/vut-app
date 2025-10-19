@@ -3,9 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Invoice;
+use Illuminate\Support\Facades\Auth;
 
 class InvoiceController extends Controller
 {
+    public function index()
+{
+    $invoices = Invoice::with(['reservation.property'])
+        ->whereHas('reservation', fn($q) => $q->where('user_id', Auth::id()))
+        ->latest('issued_at')
+        ->paginate(10);
+
+    return view('customer.invoices.index', compact('invoices'));
+}
+
     /**
      * Muestra los detalles de una factura específica.
      *

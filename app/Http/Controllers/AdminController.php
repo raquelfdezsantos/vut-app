@@ -1,9 +1,7 @@
 <?php
+
 /**
  * -----------------------------------------------------------------------------
- *  Proyecto: VUT App (2º DAW)
- *  Archivo: AdminController.php
- *  Autoría: Raquel Fernández Santos
  *  Descripción:
  *    Controlador del área de administración. Permite:
  *      - Ver el listado de reservas con filtros básicos.
@@ -20,6 +18,10 @@ use App\Models\Reservation;
 use App\Models\RateCalendar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\CarbonPeriod;
+use Carbon\Carbon;
+use App\Models\Payment;
+use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
@@ -91,6 +93,193 @@ class AdminController extends Controller
             }
         });
 
-        return back()->with('success', 'Reserva cancelada y noches repuestas correctamente.');
+        // Notificaciones de cancelación (cliente y admin)
+        \Log::info('Intentando enviar ReservationCancelledMail al cliente', ['email' => $reservation->user->email]);
+        try {
+            \Mail::to($reservation->user->email)->send(new \App\Mail\ReservationCancelledMail($reservation));
+            \Log::info('ReservationCancelledMail enviado al cliente', ['email' => $reservation->user->email]);
+        } catch (\Throwable $e) {
+            \Log::error('Fallo ReservationCancelledMail cliente', ['msg' => $e->getMessage()]);
+            report($e);
+        }
+        \Log::info('Intentando enviar ReservationCancelledMail al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
+        try {
+            \Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))->send(new \App\Mail\ReservationCancelledMail($reservation));
+            \Log::info('ReservationCancelledMail enviado al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
+        } catch (\Throwable $e) {
+            \Log::error('Fallo ReservationCancelledMail admin', ['msg' => $e->getMessage()]);
+            report($e);
+        }
+
+        return back()->with('success', 'Reserva cancelada, noches repuestas y notificada.');
+    }
+
+
+    private function rangeDates(string $from, string $to): array
+    {
+        $period = CarbonPeriod::create($from, $to)->excludeEndDate();
+        return collect($period)->map(fn($d) => $d->toDateString())->all();
+    }
+    private function setAvailability(int $propertyId, array $dates, bool $available): void
+    {
+        if (empty($dates)) return;
+        RateCalendar::where('property_id', $propertyId)
+            ->whereIn('date', $dates)
+            ->update(['is_available' => $available]);
+    }
+
+    /** Form edición (admin) */
+    public function edit(int $id)
+    {
+        $reservation = Reservation::with('property', 'user')->findOrFail($id);
+        return view('admin.reservations.edit', compact('reservation')); // crea vista simple
+    }
+
+    /** Update (admin) — permite pending/paid */
+    public function update(Request $request, int $id)
+    {
+        $reservation = Reservation::with('property')->findOrFail($id);
+
+        $data = $request->validate([
+            'check_in'  => ['required', 'date'],
+            'check_out' => ['required', 'date', 'after:check_in'],
+            'guests'    => ['required', 'integer', 'min:1'],
+        ]);
+
+        $property = $reservation->property;
+        if ((int)$data['guests'] > (int)$property->capacity) {
+            return back()->withErrors(['guests' => "Máximo {$property->capacity} huéspedes."]);
+        }
+
+        $oldDates = $this->rangeDates($reservation->check_in->toDateString(), $reservation->check_out->toDateString());
+        $newDates = $this->rangeDates($data['check_in'], $data['check_out']);
+
+        // Solapes con otras reservas
+        $overlap = Reservation::where('property_id', $property->id)
+            ->where('id', '!=', $reservation->id)
+            ->whereNotIn('status', ['cancelled'])
+            ->where(function ($q) use ($data) {
+                $q->where('check_in', '<', $data['check_out'])
+                    ->where('check_out', '>', $data['check_in']);
+            })
+            ->exists();
+        if ($overlap) {
+            return back()->withErrors(['check_in' => 'Solapa con otra reserva.']);
+        }
+
+        $rates = RateCalendar::where('property_id', $property->id)
+            ->whereIn('date', $newDates)->get()->keyBy('date');
+
+        foreach ($newDates as $d) {
+            $rate = $rates->get($d);
+            if (!$rate || (!$rate->is_available && !in_array($d, $oldDates, true))) {
+                return back()->withErrors(['check_in' => "No hay disponibilidad el día $d."]);
+            }
+        }
+
+    $newTotal = $rates->sum('price') * (int)$data['guests'];
+
+        DB::transaction(function () use ($reservation, $property, $oldDates, $newDates, $newTotal, $data) {
+            $this->setAvailability($property->id, $oldDates, true);
+            $this->setAvailability($property->id, $newDates, false);
+
+            $reservation->update([
+                'check_in'    => $data['check_in'],
+                'check_out'   => $data['check_out'],
+                'guests'      => $data['guests'],
+                'total_price' => $newTotal,
+            ]);
+        });
+
+        // Notificaciones por email (cliente y admin)
+        \Log::info('Intentando enviar ReservationUpdatedMail al cliente', ['email' => $reservation->user->email]);
+        try {
+            \Mail::to($reservation->user->email)->send(new \App\Mail\ReservationUpdatedMail($reservation));
+            \Log::info('ReservationUpdatedMail enviado al cliente', ['email' => $reservation->user->email]);
+        } catch (\Throwable $e) {
+            \Log::error('Fallo ReservationUpdatedMail cliente', ['msg' => $e->getMessage()]);
+            report($e);
+        }
+        \Log::info('Intentando enviar ReservationUpdatedMail al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
+        try {
+            \Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))->send(new \App\Mail\ReservationUpdatedMail($reservation));
+            \Log::info('ReservationUpdatedMail enviado al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
+        } catch (\Throwable $e) {
+            \Log::error('Fallo ReservationUpdatedMail admin', ['msg' => $e->getMessage()]);
+            report($e);
+        }
+
+        // Si hay diferencia a devolver, simular refund y notificar
+        $paid = method_exists($reservation, 'paidAmount') ? $reservation->paidAmount() : 0;
+        $diff = $reservation->total_price - $paid;
+        if ($diff < 0) {
+            $refund = abs($diff);
+            DB::transaction(function () use ($reservation, $refund) {
+                \App\Models\Payment::create([
+                    'reservation_id' => $reservation->id,
+                    'amount'        => -$refund,
+                    'method'        => 'simulated',
+                    'status'        => 'refunded',
+                    'provider_ref'  => 'SIM-REF-' . \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(6)),
+                ]);
+            });
+            try {
+                \Mail::to($reservation->user->email)->send(new \App\Mail\PaymentRefundIssuedMail($reservation, $refund));
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        return redirect()->route('admin.dashboard')->with('success', 'Reserva actualizada y notificada.');
+    }
+
+
+    public function refund(int $id)
+    {
+        $reservation = Reservation::with('property')->findOrFail($id);
+
+        if ($reservation->status !== 'paid') {
+            return back()->with('error', 'Solo reservas pagadas pueden reembolsarse.');
+        }
+
+        $refund = $reservation->total_price;
+        DB::transaction(function () use ($reservation, $refund) {
+            // 1) Cancelar y reponer noches
+            $reservation->update(['status' => 'cancelled']);
+
+            for ($d = $reservation->check_in->copy(); $d->lt($reservation->check_out); $d->addDay()) {
+                RateCalendar::where('property_id', $reservation->property_id)
+                    ->whereDate('date', $d->toDateString())
+                    ->update(['is_available' => true]);
+            }
+
+            // 2) Registrar “reembolso” simulado
+            Payment::create([
+                'reservation_id' => $reservation->id,
+                'amount'         => $refund, // total reembolsado
+                'method'         => 'simulated',
+                'status'         => 'refunded',
+                'provider_ref'   => 'REF-' . \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(8)),
+            ]);
+        });
+
+        // Notificaciones de cancelación y reembolso (cliente y admin)
+        try {
+            \Mail::to($reservation->user->email)->send(new \App\Mail\ReservationCancelledMail($reservation));
+        } catch (\Throwable $e) {
+            report($e);
+        }
+        try {
+            \Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))->send(new \App\Mail\ReservationCancelledMail($reservation));
+        } catch (\Throwable $e) {
+            report($e);
+        }
+        try {
+            \Mail::to($reservation->user->email)->send(new \App\Mail\PaymentRefundIssuedMail($reservation, $refund));
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        return back()->with('success', 'Reserva cancelada, reembolso registrado y notificada.');
     }
 }

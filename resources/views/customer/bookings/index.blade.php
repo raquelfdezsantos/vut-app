@@ -52,14 +52,42 @@
                                             </button>
                                         </form>
                                     @endif
+                                </td>
+                                <td class="py-2 space-x-3">
+                                    @if($r->status !== 'cancelled')
+                                        {{-- Editar siempre (pending o paid) --}}
+                                        <a href="{{ route('reservas.edit', $r) }}"
+                                            class="text-indigo-600 hover:underline">Editar</a>
 
-                                    @if($r->invoice)
-                                        <a href="{{ route('invoices.show', $r->invoice->id) }}"
-                                            class="inline-block px-3 py-1 rounded bg-gray-100 text-gray-800 text-sm border hover:bg-gray-200 ml-2">
-                                            Ver factura
-                                        </a>
+                                        {{-- Cancelar siempre (pending o paid) --}}
+                                        <form method="POST" action="{{ route('reservas.cancel', $r) }}" class="inline">
+                                            @csrf
+                                            <button class="text-red-600 hover:underline"
+                                                onclick="return confirm('¿Cancelar esta reserva?')">
+                                                Cancelar
+                                            </button>
+                                        </form>
+
+                                        {{-- Ver factura si existe --}}
+                                        @if($r->invoice)
+                                            <a href="{{ route('invoices.show', $r->invoice->number) }}"
+                                                class="text-indigo-600 hover:underline">Ver factura</a>
+                                        @endif
+
+                                        {{-- Pagar diferencia solo si la reserva está pagada y hay balance pendiente --}}
+                                        @if($r->status === 'paid' && method_exists($r, 'balanceDue') && $r->balanceDue() > 0)
+                                            <form method="POST" action="{{ route('reservations.pay_difference', $r->id) }}"
+                                                class="inline">
+                                                @csrf
+                                                <button class="text-amber-600 hover:underline"
+                                                    onclick="return confirm('Pagar diferencia de {{ number_format($r->balanceDue(), 2, ',', '.') }} €?')">
+                                                    Pagar diferencia
+                                                </button>
+                                            </form>
+                                        @endif
                                     @endif
                                 </td>
+
                             </tr>
                         @endforeach
                     </tbody>

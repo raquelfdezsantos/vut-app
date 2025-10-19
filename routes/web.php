@@ -17,7 +17,8 @@ use App\Models\Invoice;
 | Rutas públicas
 |--------------------------------------------------------------------------
 */
-Route::get('/', fn () => view('welcome'))->name('home');
+
+Route::get('/', fn() => view('welcome'))->name('home');
 
 // Propiedades
 Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
@@ -28,14 +29,14 @@ Route::get('/propiedad/{property:slug}', [PropertyController::class, 'show'])->n
 | Rutas protegidas comunes (Breeze)
 |--------------------------------------------------------------------------
 */
-Route::get('/dashboard', fn () => view('dashboard'))
+Route::get('/dashboard', fn() => view('dashboard'))
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile',  [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile',[ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile',[ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 /*
@@ -54,8 +55,13 @@ Route::middleware(['auth', 'role:admin'])
         Route::view('/photos',   'admin.photos.index')->name('photos.index');
         Route::view('/calendar', 'admin.calendar.index')->name('calendar.index');
 
-        // Acciones sobre reservas
+        // Editar, actualizar y cancelar reserva
         Route::post('/reservations/{id}/cancel', [AdminController::class, 'cancel'])->name('reservations.cancel');
+        Route::get('/reservations/{id}/edit', [AdminController::class, 'edit'])->name('reservations.edit');
+        Route::put('/reservations/{id}', [AdminController::class, 'update'])->name('reservations.update');
+
+        // Reembolso de reserva
+        Route::post('/reservations/{id}/refund', [AdminController::class, 'refund'])->name('reservations.refund');
     });
 
 /*
@@ -66,8 +72,26 @@ Route::middleware(['auth', 'role:admin'])
 Route::middleware(['auth', 'role:customer'])->group(function () {
     // Listado de reservas del cliente
     Route::get('/mis-reservas', [ReservationController::class, 'index'])->name('reservas.index');
+    
     // Crear reserva (POST desde ficha)
     Route::post('/reservas', [ReservationController::class, 'store'])->name('reservas.store');
+    
+    // Listado de facturas del cliente
+    Route::get('/mis-facturas', [InvoiceController::class, 'index'])->name('invoices.index');
+    
+    // Editar, actualizar y cancelar reserva
+    Route::get('/reservas/{reservation}/editar', [ReservationController::class, 'edit'])->name('reservas.edit');
+    Route::put('/reservas/{reservation}', [ReservationController::class, 'update'])->name('reservas.update');
+    Route::post('/reservas/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('reservas.cancel');
+    
+    // Pagar diferencia de una reserva ya existente
+    Route::post('/reservations/{id}/pay-difference', [PaymentController::class, 'payDifference'])
+        ->name('reservations.pay_difference');
+
+    // Cancelación por parte del cliente
+    Route::post('/reservations/{id}/cancel', [ReservationController::class, 'cancelSelf'])
+        ->middleware('role:customer')
+        ->name('reservas.cancel.self');
 });
 
 /*
@@ -82,7 +106,7 @@ Route::middleware(['auth'])->group(function () {
 
 // Ruta de prueba envío email con Mailtrap
 Route::get('/dev/test-payment-mail', function () {
-    $reservation = Reservation::with(['user','property'])->latest()->firstOrFail();
+    $reservation = Reservation::with(['user', 'property'])->latest()->firstOrFail();
     $invoice = Invoice::where('reservation_id', $reservation->id)->latest()->firstOrFail();
     \Mail::to('cliente@vut.test')->send(new PaymentReceiptMail($reservation, $invoice));
     return 'OK sent';

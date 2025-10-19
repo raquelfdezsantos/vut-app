@@ -67,7 +67,7 @@ class Reservation extends Model
         return $this->belongsTo(\App\Models\User::class);
     }
 
-     /**
+    /**
      * Relación: una reserva tiene una factura.
      * 
      * @return \Illuminate\Database\Eloquent\Relations\HasOne<Invoice>
@@ -85,5 +85,35 @@ class Reservation extends Model
     public function payments()
     {
         return $this->hasMany(\App\Models\Payment::class);
+    }
+
+
+    /**
+     * Devuelve el total pagado neto (pagos - devoluciones).
+     */
+    public function paidAmount(): float
+    {
+        $paid = (float) $this->payments()->where('status', 'succeeded')->sum('amount');
+        $refunded = (float) $this->payments()->where('status', 'refunded')->sum('amount');
+        return $paid + $refunded; // refunds son negativos
+    }
+
+    public function refundedAmount(): float
+    {
+        return (float) $this->payments()
+            ->where('status', 'refunded')
+            ->sum('amount');
+    }
+
+    public function balanceDue(): float
+    {
+        // Lo que falta por cobrar si total > pagado; 0 si no.
+        return max(0, (float)$this->total_price - $this->paidAmount());
+    }
+
+    public function overpaid(): float
+    {
+        // Exceso pagado (para detectar devoluciones); 0 si no.
+        return max(0, $this->paidAmount() - (float)$this->total_price);
     }
 }
