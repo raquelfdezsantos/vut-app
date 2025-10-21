@@ -15,9 +15,19 @@ return new class extends Migration {
         });
 
         // Backfill: poner el total de la reserva en amount
-        DB::table('invoices as i')
-            ->join('reservations as r', 'r.id', '=', 'i.reservation_id')
-            ->update(['i.amount' => DB::raw('r.total_price')]);
+        // SQLite doesn't support referencing another table alias in the SET clause the
+        // same way MySQL/Postgres do with multi-table updates, so use a portable
+        // subselect which works across drivers:
+        DB::statement(<<<'SQL'
+            UPDATE invoices
+            SET amount = (
+                SELECT total_price FROM reservations WHERE reservations.id = invoices.reservation_id
+            )
+            WHERE EXISTS (
+                SELECT 1 FROM reservations WHERE reservations.id = invoices.reservation_id
+            )
+        SQL
+        );
     }
 
     public function down(): void

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -22,6 +23,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Reservation extends Model
 {
+    use HasFactory;
     /**
      * Atributos que pueden asignarse de forma masiva.
      *
