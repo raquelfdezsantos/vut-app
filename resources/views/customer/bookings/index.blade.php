@@ -15,8 +15,12 @@
 
         @if($reservations->isEmpty())
             <div class="bg-white p-6 rounded shadow mt-4">
-                <p>No tienes reservas aún.</p>
-                <a href="{{ url('/') }}" class="text-indigo-600 underline">Ir a la propiedad</a>
+                <p class="text-gray-600">No tienes reservas aún.</p>
+
+                <a href="{{ $suggested ? route('properties.show', $suggested->slug) : route('properties.index') }}"
+                    class="inline-block mt-3 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+                    Ir a la propiedad
+                </a>
             </div>
         @else
             <div class="bg-white p-6 rounded shadow mt-4 overflow-x-auto">
@@ -41,7 +45,7 @@
                                 <td class="py-2 px-3">{{ $r->guests }}</td>
                                 <td class="py-2 px-3">{{ number_format($r->total_price, 2, ',', '.') }} €</td>
                                 <td class="py-2 px-3">{{ ucfirst($r->status) }}</td>
-                                <td class="py-2 px-3">
+                                <td class="py-2 px-3 space-x-3">
                                     @if($r->status === 'pending')
                                         <form method="POST" action="{{ route('reservations.pay', $r->id) }}" class="inline">
                                             @csrf
@@ -52,14 +56,13 @@
                                             </button>
                                         </form>
                                     @endif
-                                </td>
-                                <td class="py-2 space-x-3">
+
                                     @if($r->status !== 'cancelled')
-                                        {{-- Editar siempre (pending o paid) --}}
+                                        {{-- Editar (pending o paid) --}}
                                         <a href="{{ route('reservas.edit', $r) }}"
                                             class="text-indigo-600 hover:underline">Editar</a>
 
-                                        {{-- Cancelar siempre (pending o paid) --}}
+                                        {{-- Cancelar (pending o paid) --}}
                                         <form method="POST" action="{{ route('reservas.cancel', $r) }}" class="inline">
                                             @csrf
                                             <button class="text-red-600 hover:underline"
@@ -68,13 +71,16 @@
                                             </button>
                                         </form>
 
-                                        {{-- Ver factura si existe --}}
+                                        {{-- Ver/Descargar factura si existe --}}
                                         @if($r->invoice)
                                             <a href="{{ route('invoices.show', $r->invoice->number) }}"
                                                 class="text-indigo-600 hover:underline">Ver factura</a>
+
+                                            <a href="{{ route('invoices.show', $r->invoice->number) }}?download=1"
+                                                class="text-indigo-600 hover:underline">Descargar PDF</a>
                                         @endif
 
-                                        {{-- Pagar diferencia solo si la reserva está pagada y hay balance pendiente --}}
+                                        {{-- Pagar diferencia si procede --}}
                                         @if($r->status === 'paid' && method_exists($r, 'balanceDue') && $r->balanceDue() > 0)
                                             <form method="POST" action="{{ route('reservations.pay_difference', $r->id) }}"
                                                 class="inline">
@@ -87,6 +93,7 @@
                                         @endif
                                     @endif
                                 </td>
+
 
                             </tr>
                         @endforeach

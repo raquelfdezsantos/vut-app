@@ -25,3 +25,6 @@ Thumbs.db
 _ide_helper.php
 _ide_helper_models.php
 .phpstorm.meta.php
+backup_*.sql
+*.sql
+\d\1.1.TUNIVERS\Segundo\Proyecto-Mario\vut\docker\mysql\initdb.d\99-project-init.sh

@@ -17,22 +17,27 @@
           </tr>
         </thead>
         <tbody>
-        @forelse($invoices as $inv)
-          <tr class="border-b">
-            <td class="py-2">{{ $inv->number }}</td>
-            <td class="py-2">{{ optional($inv->issued_at)->format('d/m/Y') }}</td>
-            <td class="py-2">{{ $inv->reservation->property->name ?? '—' }}</td>
-            <td class="py-2">
-              {{ $inv->reservation->check_in->format('d/m/Y') }} → {{ $inv->reservation->check_out->format('d/m/Y') }}
-            </td>
-            <td class="py-2">{{ number_format($inv->amount, 2, ',', '.') }} €</td>
-            <td class="py-2">
-              <a class="text-indigo-600 hover:underline" href="{{ route('invoices.show', $inv->number) }}">Ver</a>
-            </td>
-          </tr>
-        @empty
-          <tr><td colspan="6" class="py-4">No tienes facturas.</td></tr>
-        @endforelse
+          @forelse($invoices as $inv)
+            <tr class="border-b">
+              <td class="py-2">{{ $inv->number }}</td>
+              <td class="py-2">{{ optional($inv->issued_at)->format('d/m/Y') }}</td>
+              <td class="py-2">{{ $inv->reservation->property->name ?? '—' }}</td>
+              <td class="py-2">
+                {{ $inv->reservation->check_in->format('d/m/Y') }} → {{ $inv->reservation->check_out->format('d/m/Y') }}
+              </td>
+              <td class="py-2">{{ number_format($inv->amount, 2, ',', '.') }} €</td>
+              <td class="py-2">
+                <a class="text-indigo-600 hover:underline" href="{{ route('invoices.show', $inv->number) }}">Ver</a>
+                <a class="text-indigo-600 hover:underline" href="{{ route('invoices.show', $inv->number) }}?download=1">
+                  Descargar PDF
+                </a>
+              </td>
+            </tr>
+          @empty
+            <tr>
+              <td colspan="6" class="py-4">No tienes facturas.</td>
+            </tr>
+          @endforelse
         </tbody>
       </table>
 

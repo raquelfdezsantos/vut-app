@@ -19,7 +19,7 @@ use Illuminate\Support\Str;
 use App\Mail\ReservationUpdatedMail;
 use App\Mail\ReservationCancelledMail;
 use App\Mail\PaymentRefundIssuedMail;
-use App\Mail\PaymentBalanceDueMail;  
+use App\Mail\PaymentBalanceDueMail;
 
 /**
  * Controlador de reservas.
@@ -47,12 +47,13 @@ class ReservationController extends Controller
     public function index()
     {
         $reservations = Reservation::with(['property', 'invoice'])
-            ->where('user_id', Auth::id())
+            ->where('user_id', \Auth::id())
             ->latest('check_in')
             ->paginate(10);
 
-        // Usa la vista que hay en carpeta:
-        return view('customer.bookings.index', compact('reservations'));
+        $suggested = Property::select('id', 'slug', 'name')->first();
+
+        return view('customer.bookings.index', compact('reservations', 'suggested'));
     }
 
 
@@ -142,7 +143,7 @@ class ReservationController extends Controller
             return back()->withErrors(['check_in' => "La estancia mínima para esas fechas es de {$minStayFromRates} noches."])->withInput();
         }
 
-    $total = $rates->sum('price') * (int)$data['guests'];
+        $total = $rates->sum('price') * (int)$data['guests'];
 
         // Transacción: crear reserva + marcar noches como NO disponibles
         $reservation = DB::transaction(function () use ($data, $property, $total) {
@@ -292,7 +293,7 @@ class ReservationController extends Controller
             return back()->withErrors(['check_in' => "La estancia mínima para esas fechas es de {$minStay} noches."]);
         }
 
-    $newTotal = $rates->sum('price') * (int)$data['guests'];
+        $newTotal = $rates->sum('price') * (int)$data['guests'];
 
         DB::transaction(function () use ($reservation, $property, $oldDates, $newDates, $newTotal, $data) {
             // liberar antiguas y bloquear nuevas (excluye checkout)
