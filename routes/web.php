@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\PaymentReceiptMail;
 use App\Models\Reservation;
 use App\Models\Invoice;
+use App\Http\Controllers\StripeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -110,6 +111,24 @@ Route::get('/dev/test-payment-mail', function () {
     $invoice = Invoice::where('reservation_id', $reservation->id)->latest()->firstOrFail();
     \Mail::to('cliente@vut.test')->send(new PaymentReceiptMail($reservation, $invoice));
     return 'OK sent';
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| Stripe (test)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth','role:customer'])->group(function () {
+    // Crear sesión de Stripe Checkout (POST)
+    Route::post('/checkout/{reservation}', [StripeController::class, 'checkout'])
+        ->name('stripe.checkout');
+
+    // URLs de retorno desde Stripe (GET)
+    Route::get('/checkout/success', [StripeController::class, 'success'])
+        ->name('stripe.success');
+    Route::get('/checkout/cancel', [StripeController::class, 'cancel'])
+        ->name('stripe.cancel');
 });
 
 

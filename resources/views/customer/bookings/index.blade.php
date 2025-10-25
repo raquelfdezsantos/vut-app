@@ -47,15 +47,15 @@
                                 <td class="py-2 px-3">{{ ucfirst($r->status) }}</td>
                                 <td class="py-2 px-3 space-x-3">
                                     @if($r->status === 'pending')
-                                        <form method="POST" action="{{ route('reservations.pay', $r->id) }}" class="inline">
+                                        <form method="POST" action="{{ route('stripe.checkout', $r->id) }}" class="inline">
                                             @csrf
-                                            <button
-                                                class="inline-block px-3 py-1 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700"
-                                                onclick="return confirm('¿Simular pago de esta reserva?')">
-                                                Pagar
+                                            <button type="submit"
+                                                class="inline-block px-3 py-1 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700">
+                                                Pagar con tarjeta
                                             </button>
                                         </form>
                                     @endif
+
 
                                     @if($r->status !== 'cancelled')
                                         {{-- Editar (pending o paid) --}}
