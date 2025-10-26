@@ -55,10 +55,11 @@
                                     <td class="p-3">{{ number_format($r->total_price, 2, ',', '.') }} €</td>
                                     <td class="p-3">{{ ucfirst($r->status) }}</td>
                                     <td class="p-3">
-                                        {{-- Siempre permitir Editar en admin --}}
+                                        {{-- Editar siempre en admin --}}
                                         <a href="{{ route('admin.reservations.edit', $r->id) }}"
                                             class="text-indigo-600 hover:underline">Editar</a>
-                                        @if($r->status === 'pending')
+
+                                        @if ($r->status === 'pending')
                                             <div class="flex gap-2">
                                                 <form method="POST" action="{{ route('reservations.pay', $r->id) }}">
                                                     @csrf
@@ -75,28 +76,40 @@
                                                         Cancelar
                                                     </button>
                                                 </form>
+                                            </div>
 
-                                        @elseif($r->status === 'paid')
-                                            {{-- Reembolsar & cancelar (admin) --}}
-                                            <form method="POST" action="{{ route('admin.reservations.refund', $r->id) }}"
-                                                class="inline">
-                                                @csrf
-                                                <button class="text-red-600 hover:underline"
-                                                    onclick="return confirm('Esto marcará la reserva como cancelada y registrará reembolso. ¿Continuar?')">
-                                                    Reembolsar & cancelar
-                                                </button>
-                                            </form>
-                                        </div>
+                                        @elseif ($r->status === 'paid' && $r->invoice)
+                                            <div class="flex gap-2 items-center">
+                                                <a class="text-indigo-600 hover:underline"
+                                                    href="{{ route('invoices.show', $r->invoice->number) }}">
+                                                    Ver factura
+                                                </a>
+                                                <a class="text-indigo-600 hover:underline ml-3"
+                                                    href="{{ route('invoices.show', $r->invoice->number) }}?download=1">
+                                                    Descargar PDF
+                                                </a>
 
-                                        @elseif($r->status === 'paid' && $r->invoice)
-                                        <a class="px-3 py-1 rounded bg-gray-800 text-white text-sm"
-                                            href="{{ route('invoices.show', $r->invoice->number) }}">
-                                            Ver factura
-                                        </a>
+                                                <form method="POST" action="{{ route('admin.reservations.refund', $r->id) }}"
+                                                    class="inline">
+                                                    @csrf
+                                                    <button
+                                                        class="text-red-600 hover:underline"
+                                                        onclick="return confirm('Esto marcará la reserva como cancelada y registrará reembolso. ¿Continuar?')">
+                                                        Reembolsar y cancelar
+                                                    </button>
+                                                </form>
+                                            </div>
+
+
+                                        @elseif ($r->status === 'paid')
+                                            {{-- Pagada pero aún sin invoice (raro, pero por si acaso) --}}
+                                            <span class="text-gray-500">Sin factura</span>
+
                                         @else
                                             —
                                         @endif
                                     </td>
+
                                 </tr>
                             @empty
                                 <tr>

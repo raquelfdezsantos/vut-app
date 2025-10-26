@@ -20,6 +20,9 @@ use App\Mail\ReservationUpdatedMail;
 use App\Mail\ReservationCancelledMail;
 use App\Mail\PaymentRefundIssuedMail;
 use App\Mail\PaymentBalanceDueMail;
+use Throwable;
+use Illuminate\Support\Facades\Log;
+
 
 /**
  * Controlador de reservas.
@@ -172,14 +175,14 @@ class ReservationController extends Controller
         // Emails (no romper si falla SMTP)
         try {
             Mail::to($reservation->user->email)->send(new ReservationConfirmedMail($reservation));
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
         }
 
         try {
             Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))
                 ->send(new AdminNewReservationMail($reservation));
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
         }
 
@@ -223,7 +226,7 @@ class ReservationController extends Controller
     /** Form de edición (cliente, permite pending y paid) */
     public function edit(Reservation $reservation)
     {
-        abort_unless($reservation->user_id === Auth::id(), 403);
+        $this->authorize('update', $reservation);
         if ($reservation->status === 'cancelled') {
             return back()->with('error', 'No puedes modificar reservas canceladas.');
         }
@@ -234,7 +237,7 @@ class ReservationController extends Controller
     /** Update fechas (cliente, permite pending y paid) */
     public function update(Request $request, Reservation $reservation)
     {
-        abort_unless($reservation->user_id === Auth::id(), 403);
+        $this->authorize('update', $reservation);
         if ($reservation->status === 'cancelled') {
             return back()->with('error', 'No puedes modificar reservas canceladas.');
         }
@@ -312,20 +315,20 @@ class ReservationController extends Controller
         $diff   = $reservation->total_price - $paid; // >0 falta cobrar, <0 hay que devolver
 
         // Emails con Mailables (cliente y admin)
-        \Log::info('Intentando enviar ReservationUpdatedMail al cliente', ['email' => $reservation->user->email]);
+        Log::info('Intentando enviar ReservationUpdatedMail al cliente', ['email' => $reservation->user->email]);
         try {
             Mail::to($reservation->user->email)->send(new ReservationUpdatedMail($reservation));
-            \Log::info('ReservationUpdatedMail enviado al cliente', ['email' => $reservation->user->email]);
-        } catch (\Throwable $e) {
-            \Log::error('Fallo ReservationUpdatedMail cliente', ['msg' => $e->getMessage()]);
+            Log::info('ReservationUpdatedMail enviado al cliente', ['email' => $reservation->user->email]);
+        } catch (Throwable $e) {
+            Log::error('Fallo ReservationUpdatedMail cliente', ['msg' => $e->getMessage()]);
             report($e);
         }
-        \Log::info('Intentando enviar ReservationUpdatedMail al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
+        Log::info('Intentando enviar ReservationUpdatedMail al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
         try {
             Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))->send(new ReservationUpdatedMail($reservation));
-            \Log::info('ReservationUpdatedMail enviado al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
-        } catch (\Throwable $e) {
-            \Log::error('Fallo ReservationUpdatedMail admin', ['msg' => $e->getMessage()]);
+            Log::info('ReservationUpdatedMail enviado al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
+        } catch (Throwable $e) {
+            Log::error('Fallo ReservationUpdatedMail admin', ['msg' => $e->getMessage()]);
             report($e);
         }
 
@@ -345,7 +348,7 @@ class ReservationController extends Controller
 
             try {
                 Mail::to($reservation->user->email)->send(new PaymentRefundIssuedMail($reservation, $refund));
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 report($e);
             }
         }
@@ -356,7 +359,7 @@ class ReservationController extends Controller
     /** Cancelar (cliente, permite pending y paid) */
     public function cancel(Reservation $reservation)
     {
-        abort_unless($reservation->user_id === Auth::id(), 403);
+        $this->authorize('cancel', $reservation);
         if ($reservation->status === 'cancelled') {
             return back()->with('error', 'La reserva ya está cancelada.');
         }
@@ -368,20 +371,20 @@ class ReservationController extends Controller
         });
 
         // Emails de cancelación (cliente y admin)
-        \Log::info('Intentando enviar ReservationCancelledMail al cliente', ['email' => $reservation->user->email]);
+        Log::info('Intentando enviar ReservationCancelledMail al cliente', ['email' => $reservation->user->email]);
         try {
             Mail::to($reservation->user->email)->send(new ReservationCancelledMail($reservation));
-            \Log::info('ReservationCancelledMail enviado al cliente', ['email' => $reservation->user->email]);
-        } catch (\Throwable $e) {
-            \Log::error('Fallo ReservationCancelledMail cliente', ['msg' => $e->getMessage()]);
+            Log::info('ReservationCancelledMail enviado al cliente', ['email' => $reservation->user->email]);
+        } catch (Throwable $e) {
+            Log::error('Fallo ReservationCancelledMail cliente', ['msg' => $e->getMessage()]);
             report($e);
         }
-        \Log::info('Intentando enviar ReservationCancelledMail al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
+        Log::info('Intentando enviar ReservationCancelledMail al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
         try {
             Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))->send(new ReservationCancelledMail($reservation));
-            \Log::info('ReservationCancelledMail enviado al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
-        } catch (\Throwable $e) {
-            \Log::error('Fallo ReservationCancelledMail admin', ['msg' => $e->getMessage()]);
+            Log::info('ReservationCancelledMail enviado al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
+        } catch (Throwable $e) {
+            Log::error('Fallo ReservationCancelledMail admin', ['msg' => $e->getMessage()]);
             report($e);
         }
 

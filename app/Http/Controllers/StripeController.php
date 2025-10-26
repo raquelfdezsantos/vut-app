@@ -78,6 +78,8 @@ class StripeController extends Controller
 
         $reservation = Reservation::with(['user', 'property', 'payments'])->findOrFail($reservationId);
 
+        $this->authorize('pay', $reservation);
+        
         // Idempotencia: si ya está paid y existe un pago “succeeded”, no repetir
         if ($reservation->status === 'paid' && $reservation->payments()->where('status', 'succeeded')->exists()) {
             return redirect()->route('reservas.index')->with('success', 'Pago confirmado.');

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Invoice;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 
@@ -30,11 +30,27 @@ class InvoiceController extends Controller
         $invoice = Invoice::with(['reservation.user', 'reservation.property'])
             ->where('number', $number)->firstOrFail();
 
+        $this->authorize('view', $invoice->reservation);
+
         if (request()->boolean('download')) {
             $pdf = PDF::loadView('invoices.pdf', ['invoice' => $invoice]);
             return $pdf->download($invoice->number . '.pdf');
         }
 
         return view('invoices.show', compact('invoice'));
+    }
+
+
+    /**
+     * Summary of adminIndex
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function adminIndex()
+    {
+        $invoices = Invoice::with(['reservation.user', 'reservation.property'])
+            ->latest('issued_at')
+            ->paginate(20);
+
+        return view('admin.invoices.index', compact('invoices'));
     }
 }
