@@ -11,7 +11,7 @@ use Illuminate\Queue\SerializesModels;
 use App\Models\Reservation;
 use App\Models\Invoice;
 
-class PaymentReceiptMail extends Mailable
+class PaymentReceiptMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
