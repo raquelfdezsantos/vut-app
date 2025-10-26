@@ -27,9 +27,13 @@ class PaymentController extends Controller
     public function pay(int $reservationId)
     {
         $reservation = Reservation::with(['user', 'property'])
-            ->where('id', $reservationId)
-            ->where('status', 'pending')
-            ->firstOrFail();
+        ->findOrFail($reservationId);
+
+        // Autorización por policy (cliente dueño o admin)
+        $this->authorize('pay', $reservation);
+
+        // Reglas de negocio
+        abort_unless($reservation->status === 'pending', 403);
 
         // Guardamos la factura que se crea
         $invoice = DB::transaction(function () use ($reservation) {
@@ -82,7 +86,7 @@ class PaymentController extends Controller
     public function payDifference(int $reservationId)
     {
         $reservation = Reservation::with(['user', 'property', 'payments'])->findOrFail($reservationId);
-    abort_unless($reservation->user_id === Auth::id() || (Auth::user() && Auth::user()->role === 'admin'), 403);
+        $this->authorize('pay', $reservation);
 
         $balance = $reservation->balanceDue();
         if ($balance <= 0.0) {

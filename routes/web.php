@@ -12,6 +12,7 @@ use App\Mail\PaymentReceiptMail;
 use App\Models\Reservation;
 use App\Models\Invoice;
 use App\Http\Controllers\StripeController;
+use App\Http\Controllers\ContactController;
 
 /*
 |--------------------------------------------------------------------------
@@ -63,6 +64,12 @@ Route::middleware(['auth', 'role:admin'])
 
         // Reembolso de reserva
         Route::post('/reservations/{id}/refund', [AdminController::class, 'refund'])->name('reservations.refund');
+
+        // Listado de facturas
+        Route::get('/invoices', [InvoiceController::class, 'adminIndex'])
+            ->name('invoices.index');
+        Route::get('/invoices/{number}', [InvoiceController::class, 'show'])
+            ->name('invoices.show');
     });
 
 /*
@@ -73,18 +80,18 @@ Route::middleware(['auth', 'role:admin'])
 Route::middleware(['auth', 'role:customer'])->group(function () {
     // Listado de reservas del cliente
     Route::get('/mis-reservas', [ReservationController::class, 'index'])->name('reservas.index');
-    
+
     // Crear reserva (POST desde ficha)
     Route::post('/reservas', [ReservationController::class, 'store'])->name('reservas.store');
-    
+
     // Listado de facturas del cliente
     Route::get('/mis-facturas', [InvoiceController::class, 'index'])->name('invoices.index');
-    
+
     // Editar, actualizar y cancelar reserva
     Route::get('/reservas/{reservation}/editar', [ReservationController::class, 'edit'])->name('reservas.edit');
     Route::put('/reservas/{reservation}', [ReservationController::class, 'update'])->name('reservas.update');
     Route::post('/reservas/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('reservas.cancel');
-    
+
     // Pagar diferencia de una reserva ya existente
     Route::post('/reservations/{id}/pay-difference', [PaymentController::class, 'payDifference'])
         ->name('reservations.pay_difference');
@@ -119,7 +126,7 @@ Route::get('/dev/test-payment-mail', function () {
 | Stripe (test)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth','role:customer'])->group(function () {
+Route::middleware(['auth', 'role:customer'])->group(function () {
     // Crear sesión de Stripe Checkout (POST)
     Route::post('/checkout/{reservation}', [StripeController::class, 'checkout'])
         ->name('stripe.checkout');
@@ -131,6 +138,16 @@ Route::middleware(['auth','role:customer'])->group(function () {
         ->name('stripe.cancel');
 });
 
+
+/*
+|--------------------------------------------------------------------------
+| Formulario de contacto
+|--------------------------------------------------------------------------
+*/
+
+Route::post('/contact', [ContactController::class, 'store'])
+    ->middleware('throttle:5,1') // 5/min
+    ->name('contact.store');
 
 /*
 |--------------------------------------------------------------------------
