@@ -145,8 +145,12 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
+Route::get('/contacto', [ContactController::class, 'create'])->name('contact.create');
+// Alias /contact que redirige al mismo formulario (opcional)
+Route::get('/contact', fn() => redirect()->route('contact.create'));
+
 Route::post('/contact', [ContactController::class, 'store'])
-    ->middleware('throttle:5,1') // 5/min
+    ->middleware('throttle:5,1') // máx. 5 envíos por minuto
     ->name('contact.store');
 
 /*
