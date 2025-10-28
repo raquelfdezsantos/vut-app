@@ -70,8 +70,13 @@ Route::middleware(['auth', 'role:admin'])
             ->name('invoices.index');
         Route::get('/invoices/{number}', [InvoiceController::class, 'show'])
             ->name('invoices.show');
+
+        // Bloquear / desbloquear noches en el calendario (ADMIN)
+        Route::post('/calendar/block',   [AdminController::class, 'blockDates'])->name('calendar.block');
+        Route::post('/calendar/unblock', [AdminController::class, 'unblockDates'])->name('calendar.unblock');
     });
 
+    
 /*
 |--------------------------------------------------------------------------
 | Área CLIENTE (reservas)

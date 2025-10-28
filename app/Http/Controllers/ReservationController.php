@@ -165,7 +165,7 @@ class ReservationController extends Controller
             foreach ($period as $d) {
                 RateCalendar::where('property_id', $property->id)
                     ->whereDate('date', $d->toDateString())
-                    ->update(['is_available' => false]);
+                    ->update(['is_available' => false, 'blocked_by' => 'reservation']);
             }
 
             return $reservation;

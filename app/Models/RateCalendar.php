@@ -14,5 +14,23 @@ use Illuminate\Database\Eloquent\Model;
 class RateCalendar extends Model
 {
     use HasFactory;
-    //
+
+    // Claves naturales: (property_id, date)
+    public $timestamps = false;
+
+    protected $fillable = [
+        'property_id',
+        'date',
+        'price',
+        'is_available',
+        'min_stay',
+        'blocked_by',
+    ];
+
+    protected $casts = [
+        'date' => 'date',
+        'is_available' => 'boolean',
+        'price' => 'decimal:2',
+        'min_stay' => 'integer',
+    ];
 }

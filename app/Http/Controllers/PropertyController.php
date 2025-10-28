@@ -49,6 +49,15 @@ class PropertyController extends Controller
 
         $fromPrice = optional($property->rateCalendar->first())->price ?? null;
 
-        return view('property.show', compact('property', 'fromPrice'));
+        // Cargar fechas bloqueadas para mostrar al usuario
+        $blockedDates = \App\Models\RateCalendar::where('property_id', $property->id)
+            ->where('is_available', false)
+            ->whereDate('date', '>=', now()->toDateString())
+            ->orderBy('date')
+            ->pluck('date')
+            ->map(fn($d) => \Carbon\Carbon::parse($d)->format('Y-m-d'))
+            ->toArray();
+
+        return view('property.show', compact('property', 'fromPrice', 'blockedDates'));
     }
 }

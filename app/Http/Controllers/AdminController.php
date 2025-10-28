@@ -22,6 +22,11 @@ use Carbon\CarbonPeriod;
 use Carbon\Carbon;
 use App\Models\Payment;
 use Illuminate\Support\Str;
+use App\Models\Property;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ReservationCancelledMail;
+use App\Mail\PaymentRefundIssuedMail;
+use App\Mail\ReservationUpdatedMail;
 
 class AdminController extends Controller
 {
@@ -89,14 +94,14 @@ class AdminController extends Controller
             for ($date = $start->copy(); $date->lt($end); $date->addDay()) {
                 RateCalendar::where('property_id', $reservation->property_id)
                     ->whereDate('date', $date->toDateString())
-                    ->update(['is_available' => true]);
+                    ->update(['is_available' => true, 'blocked_by' => null]);
             }
         });
 
         // Notificaciones de cancelación (cliente y admin)
         \Log::info('Intentando enviar ReservationCancelledMail al cliente', ['email' => $reservation->user->email]);
         try {
-            \Mail::to($reservation->user->email)->send(new \App\Mail\ReservationCancelledMail($reservation));
+            \Mail::to($reservation->user->email)->send(new ReservationCancelledMail($reservation));
             \Log::info('ReservationCancelledMail enviado al cliente', ['email' => $reservation->user->email]);
         } catch (\Throwable $e) {
             \Log::error('Fallo ReservationCancelledMail cliente', ['msg' => $e->getMessage()]);
@@ -104,7 +109,7 @@ class AdminController extends Controller
         }
         \Log::info('Intentando enviar ReservationCancelledMail al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
         try {
-            \Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))->send(new \App\Mail\ReservationCancelledMail($reservation));
+            \Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))->send(new ReservationCancelledMail($reservation));
             \Log::info('ReservationCancelledMail enviado al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
         } catch (\Throwable $e) {
             \Log::error('Fallo ReservationCancelledMail admin', ['msg' => $e->getMessage()]);
@@ -177,7 +182,7 @@ class AdminController extends Controller
             }
         }
 
-    $newTotal = $rates->sum('price') * (int)$data['guests'];
+        $newTotal = $rates->sum('price') * (int)$data['guests'];
 
         DB::transaction(function () use ($reservation, $property, $oldDates, $newDates, $newTotal, $data) {
             $this->setAvailability($property->id, $oldDates, true);
@@ -194,7 +199,7 @@ class AdminController extends Controller
         // Notificaciones por email (cliente y admin)
         \Log::info('Intentando enviar ReservationUpdatedMail al cliente', ['email' => $reservation->user->email]);
         try {
-            \Mail::to($reservation->user->email)->send(new \App\Mail\ReservationUpdatedMail($reservation));
+            \Mail::to($reservation->user->email)->send(new ReservationUpdatedMail($reservation));
             \Log::info('ReservationUpdatedMail enviado al cliente', ['email' => $reservation->user->email]);
         } catch (\Throwable $e) {
             \Log::error('Fallo ReservationUpdatedMail cliente', ['msg' => $e->getMessage()]);
@@ -202,7 +207,7 @@ class AdminController extends Controller
         }
         \Log::info('Intentando enviar ReservationUpdatedMail al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
         try {
-            \Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))->send(new \App\Mail\ReservationUpdatedMail($reservation));
+            \Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))->send(new ReservationUpdatedMail($reservation));
             \Log::info('ReservationUpdatedMail enviado al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
         } catch (\Throwable $e) {
             \Log::error('Fallo ReservationUpdatedMail admin', ['msg' => $e->getMessage()]);
@@ -215,16 +220,16 @@ class AdminController extends Controller
         if ($diff < 0) {
             $refund = abs($diff);
             DB::transaction(function () use ($reservation, $refund) {
-                \App\Models\Payment::create([
+                Payment::create([
                     'reservation_id' => $reservation->id,
                     'amount'        => -$refund,
                     'method'        => 'simulated',
                     'status'        => 'refunded',
-                    'provider_ref'  => 'SIM-REF-' . \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(6)),
+                    'provider_ref'  => 'SIM-REF-' . Str::upper(Str::random(6)),
                 ]);
             });
             try {
-                \Mail::to($reservation->user->email)->send(new \App\Mail\PaymentRefundIssuedMail($reservation, $refund));
+                \Mail::to($reservation->user->email)->send(new PaymentRefundIssuedMail($reservation, $refund));
             } catch (\Throwable $e) {
                 report($e);
             }
@@ -250,7 +255,7 @@ class AdminController extends Controller
             for ($d = $reservation->check_in->copy(); $d->lt($reservation->check_out); $d->addDay()) {
                 RateCalendar::where('property_id', $reservation->property_id)
                     ->whereDate('date', $d->toDateString())
-                    ->update(['is_available' => true]);
+                    ->update(['is_available' => true, 'blocked_by' => null]);
             }
 
             // 2) Registrar “reembolso” simulado
@@ -259,27 +264,93 @@ class AdminController extends Controller
                 'amount'         => $refund, // total reembolsado
                 'method'         => 'simulated',
                 'status'         => 'refunded',
-                'provider_ref'   => 'REF-' . \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(8)),
+                'provider_ref'   => 'REF-' . Str::upper(Str::random(8)),
             ]);
         });
 
         // Notificaciones de cancelación y reembolso (cliente y admin)
         try {
-            \Mail::to($reservation->user->email)->send(new \App\Mail\ReservationCancelledMail($reservation));
+            \Mail::to($reservation->user->email)->send(new ReservationCancelledMail($reservation));
         } catch (\Throwable $e) {
             report($e);
         }
         try {
-            \Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))->send(new \App\Mail\ReservationCancelledMail($reservation));
+            \Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))->send(new ReservationCancelledMail($reservation));
         } catch (\Throwable $e) {
             report($e);
         }
         try {
-            \Mail::to($reservation->user->email)->send(new \App\Mail\PaymentRefundIssuedMail($reservation, $refund));
+            \Mail::to($reservation->user->email)->send(new PaymentRefundIssuedMail($reservation, $refund));
         } catch (\Throwable $e) {
             report($e);
         }
 
         return back()->with('success', 'Reserva cancelada, reembolso registrado y notificada.');
+    }
+
+
+    public function blockDates(Request $request)
+    {
+        $data = $request->validate([
+            'property_id' => ['required', 'exists:properties,id'],
+            'start'       => ['required', 'date'],
+            'end'         => ['required', 'date', 'after_or_equal:start'], // end INCLUSIVO
+        ]);
+
+        $prop   = Property::findOrFail($data['property_id']);
+        $start  = Carbon::parse($data['start'])->startOfDay();
+        $end    = Carbon::parse($data['end'])->startOfDay(); // rango [start, end] INCLUSIVO
+
+        // 1) No permitir bloquear si hay reservas (pending/paid) que solapen
+        $overlap = Reservation::where('property_id', $prop->id)
+            ->whereIn('status', ['pending', 'paid'])
+            ->where('check_in', '<=', $end->copy()->addDay())   // Ajuste para rango inclusivo
+            ->where('check_out', '>', $start)
+            ->exists();
+
+        if ($overlap) {
+            return back()->with('error', 'No se puede bloquear: existen reservas que solapan el rango.');
+        }
+
+        // 2) Marcar is_available=false día a día (rango INCLUSIVO)
+        DB::transaction(function () use ($prop, $start, $end) {
+            for ($d = $start->clone(); $d->lte($end); $d->addDay()) { // lte = INCLUSIVO
+                RateCalendar::updateOrCreate(
+                    ['property_id' => $prop->id, 'date' => $d->toDateString()],
+                    // Conserva price/min_stay si existe; si no, pon defaults
+                    ['is_available' => false, 'blocked_by' => 'admin'] + (function () use ($prop, $d) {
+                        $rc = RateCalendar::where('property_id', $prop->id)
+                            ->where('date', $d->toDateString())->first();
+                        return $rc ? [] : ['price' => 100, 'min_stay' => 2]; // defaults simples
+                    })()
+                );
+            }
+        });
+
+        return back()->with('success', 'Noches bloqueadas correctamente.');
+    }
+
+    public function unblockDates(Request $request)
+    {
+        $data = $request->validate([
+            'property_id' => ['required', 'exists:properties,id'],
+            'start'       => ['required', 'date'],
+            'end'         => ['required', 'date', 'after_or_equal:start'], // end INCLUSIVO
+        ]);
+
+        $prop  = Property::findOrFail($data['property_id']);
+        $start = Carbon::parse($data['start'])->startOfDay();
+        $end   = Carbon::parse($data['end'])->startOfDay();
+
+        DB::transaction(function () use ($prop, $start, $end) {
+            for ($d = $start->clone(); $d->lte($end); $d->addDay()) { // lte = INCLUSIVO
+                RateCalendar::where('property_id', $prop->id)
+                    ->where('date', $d->toDateString())
+                    ->update(['is_available' => true, 'blocked_by' => null]);
+                // si no existe fila, no hace nada (queda disponible por ausencia)
+            }
+        }); 
+
+        return back()->with('success', 'Noches desbloqueadas correctamente.');
     }
 }
