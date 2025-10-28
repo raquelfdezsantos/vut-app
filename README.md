@@ -28,7 +28,7 @@ Permite al propietario controlar reservas, calendario y precios, mientras el cli
 
 ## Estado del proyecto
 En desarrollo...  
-Versión actual: v0.3.1  
+Versión actual: v0.6.0  
 Entrega final prevista: 12 de diciembre de 2025  
 Demo pública: *(pendiente de despliegue)*  
 
