@@ -22,12 +22,105 @@
                 <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">{{ session('error') }}</div>
             @endif
 
+            {{-- Widgets de estadísticas --}}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                {{-- Reservas activas --}}
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 bg-indigo-500 rounded-md p-3">
+                                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Reservas Activas</dt>
+                                    <dd class="text-3xl font-semibold text-gray-900">{{ $stats['activeReservations'] }}</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Ingresos totales --}}
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+                                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Ingresos Totales</dt>
+                                    <dd class="text-3xl font-semibold text-gray-900">{{ number_format($stats['totalRevenue'], 2, ',', '.') }} €</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Ocupación del mes --}}
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+                                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Ocupación {{ now()->format('F') }}</dt>
+                                    <dd class="text-3xl font-semibold text-gray-900">{{ $stats['occupancyRate'] }}%</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Próximas reservas --}}
+            @if($stats['upcomingReservations']->isNotEmpty())
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold mb-4">Próximas Reservas</h3>
+                        <div class="space-y-3">
+                            @foreach($stats['upcomingReservations'] as $upcoming)
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="flex-shrink-0">
+                                            <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                                <span class="text-indigo-600 font-semibold">{{ substr($upcoming->user->name ?? 'U', 0, 1) }}</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-900">{{ $upcoming->user->name ?? 'Usuario' }}</p>
+                                            <p class="text-sm text-gray-500">
+                                                {{ $upcoming->check_in->format('d/m/Y') }} - {{ $upcoming->check_out->format('d/m/Y') }}
+                                                · {{ $upcoming->guests }} huésped(es)
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-sm font-semibold text-gray-900">{{ number_format($upcoming->total_price, 2, ',', '.') }} €</p>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                            {{ $upcoming->status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                            {{ ucfirst($upcoming->status) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
-                    <p class="mb-4">
-                        Bienvenida, {{ auth()->user()->name }}. <br>
-                        Aquí puedes gestionar propiedad, fotos, calendario y reservas.
-                    </p>
+                    <h3 class="text-lg font-semibold mb-4">Todas las Reservas</h3>
 
                     <table class="w-full text-left border border-gray-200 rounded overflow-hidden">
                         <thead class="bg-gray-50">

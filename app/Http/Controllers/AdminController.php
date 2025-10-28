@@ -56,7 +56,56 @@ class AdminController extends Controller
 
         $reservations = $query->paginate(10)->withQueryString();
 
-        return view('admin.dashboard', compact('reservations'));
+        // Estadísticas para el dashboard
+        $stats = [
+            // Reservas activas (pending + paid)
+            'activeReservations' => Reservation::whereIn('status', ['pending', 'paid'])->count(),
+            
+            // Ingresos totales (solo reservas pagadas)
+            'totalRevenue' => Reservation::where('status', 'paid')->sum('total_price'),
+            
+            // Ocupación del mes actual (%)
+            'occupancyRate' => $this->calculateOccupancyRate(),
+            
+            // Próximas 5 reservas
+            'upcomingReservations' => Reservation::with(['user', 'property'])
+                ->whereIn('status', ['pending', 'paid'])
+                ->where('check_in', '>=', now())
+                ->orderBy('check_in')
+                ->limit(5)
+                ->get(),
+        ];
+
+        return view('admin.dashboard', compact('reservations', 'stats'));
+    }
+
+    /**
+     * Calcula el porcentaje de ocupación del mes actual.
+     */
+    private function calculateOccupancyRate(): float
+    {
+        $startOfMonth = now()->startOfMonth();
+        $endOfMonth = now()->endOfMonth();
+        $daysInMonth = $startOfMonth->daysInMonth;
+
+        // Contar noches reservadas en el mes (status = paid o pending)
+        $bookedNights = Reservation::whereIn('status', ['pending', 'paid'])
+            ->where(function ($q) use ($startOfMonth, $endOfMonth) {
+                $q->whereBetween('check_in', [$startOfMonth, $endOfMonth])
+                  ->orWhereBetween('check_out', [$startOfMonth, $endOfMonth])
+                  ->orWhere(function ($q2) use ($startOfMonth, $endOfMonth) {
+                      $q2->where('check_in', '<=', $startOfMonth)
+                         ->where('check_out', '>=', $endOfMonth);
+                  });
+            })
+            ->get()
+            ->sum(function ($reservation) use ($startOfMonth, $endOfMonth) {
+                $checkIn = $reservation->check_in->max($startOfMonth);
+                $checkOut = $reservation->check_out->min($endOfMonth);
+                return $checkIn->diffInDays($checkOut);
+            });
+
+        return $daysInMonth > 0 ? round(($bookedNights / $daysInMonth) * 100, 1) : 0;
     }
 
     /**
