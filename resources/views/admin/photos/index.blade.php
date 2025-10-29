@@ -9,10 +9,10 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             {{-- Navegación --}}
             <div class="mb-4 flex gap-2">
-                <a href="{{ route('admin.dashboard') }}" class="px-3 py-1 rounded bg-gray-100 border text-sm hover:bg-gray-200">← Panel</a>
-                <a href="{{ route('admin.property.index') }}" class="px-3 py-1 rounded bg-gray-100 border text-sm hover:bg-gray-200">Propiedad</a>
-                <a href="{{ route('admin.photos.index') }}" class="px-3 py-1 rounded bg-indigo-100 border border-indigo-300 text-sm font-semibold">Fotos</a>
-                <a href="{{ route('admin.calendar.index') }}" class="px-3 py-1 rounded bg-gray-100 border text-sm hover:bg-gray-200">Calendario</a>
+                <a href="{{ route('admin.properties.dashboard', $property->id) }}" class="px-3 py-1 rounded bg-gray-100 border text-sm hover:bg-gray-200">← Volver al dashboard</a>
+                <a href="{{ route('admin.property.index', $property->id) }}" class="px-3 py-1 rounded bg-gray-100 border text-sm hover:bg-gray-200">Propiedad</a>
+                <a href="{{ route('admin.photos.index', $property->id) }}" class="px-3 py-1 rounded bg-indigo-100 border border-indigo-300 text-sm font-semibold">Fotos</a>
+                <a href="{{ route('admin.calendar.index') }}?property_id={{ $property->id }}" class="px-3 py-1 rounded bg-gray-100 border text-sm hover:bg-gray-200">Calendario</a>
             </div>
 
             {{-- Mensajes --}}
@@ -30,6 +30,7 @@
                     
                     <form method="POST" action="{{ route('admin.photos.store') }}" enctype="multipart/form-data">
                         @csrf
+                        <input type="hidden" name="property_id" value="{{ $property->id }}">
                         
                         <div class="mb-4">
                             <label for="photos" class="block text-sm font-medium text-gray-700 mb-2">

@@ -498,12 +498,17 @@ class AdminController extends Controller
     /**
      * Muestra el formulario de edición de la propiedad.
      */
-    public function propertyEdit()
+    public function propertyEdit($propertyId = null)
     {
-        $property = Property::withTrashed()->first();
+        // Si no se proporciona ID, usar la primera propiedad (legacy)
+        if ($propertyId) {
+            $property = Property::withTrashed()->findOrFail($propertyId);
+        } else {
+            $property = Property::withTrashed()->first();
+        }
         
         if (!$property) {
-            return redirect()->route('admin.dashboard')
+            return redirect()->route('admin.properties.index')
                 ->with('error', 'No hay ninguna propiedad en el sistema.');
         }
 
@@ -535,14 +540,19 @@ class AdminController extends Controller
     }
 
     /**
-     * Muestra la página de gestión de fotos.
+     * Lista las fotos de la propiedad y permite gestionarlas.
      */
-    public function photosIndex()
+    public function photosIndex($propertyId = null)
     {
-        $property = Property::withTrashed()->first();
+        // Si no se proporciona ID, usar la primera propiedad (legacy)
+        if ($propertyId) {
+            $property = Property::withTrashed()->findOrFail($propertyId);
+        } else {
+            $property = Property::withTrashed()->first();
+        }
         
         if (!$property) {
-            return redirect()->route('admin.dashboard')
+            return redirect()->route('admin.properties.index')
                 ->with('error', 'No hay ninguna propiedad en el sistema.');
         }
 
@@ -557,7 +567,14 @@ class AdminController extends Controller
      */
     public function photosStore(Request $request)
     {
-        $property = Property::first();
+        // Obtener property_id del request o de la URL
+        $propertyId = $request->input('property_id') ?? $request->route('property');
+        
+        if ($propertyId) {
+            $property = Property::findOrFail($propertyId);
+        } else {
+            $property = Property::first();
+        }
         
         if (!$property) {
             return back()->with('error', 'No hay ninguna propiedad en el sistema.');
@@ -637,4 +654,89 @@ class AdminController extends Controller
 
         return back()->with('success', 'Foto marcada como portada.');
     }
+
+    /**
+     * Muestra el listado de todas las propiedades (activas y borradas).
+     */
+    public function propertiesIndex()
+    {
+        $properties = Property::withTrashed()
+            ->with('photos')
+            ->latest()
+            ->get();
+
+        return view('admin.properties.index', compact('properties'));
+    }
+
+    /**
+     * Muestra el dashboard de una propiedad específica con sus reservas.
+     */
+    public function propertyDashboard($propertyId)
+    {
+        $property = Property::withTrashed()->findOrFail($propertyId);
+        
+        // Obtener reservas de esta propiedad
+        $query = Reservation::with(['user', 'invoice'])
+            ->where('property_id', $propertyId)
+            ->latest();
+
+        $reservations = $query->paginate(10);
+
+        return view('admin.properties.dashboard', compact('property', 'reservations'));
+    }
+
+    /**
+     * Muestra el formulario para crear una nueva propiedad.
+     */
+    public function propertiesCreate()
+    {
+        return view('admin.properties.create');
+    }
+
+    /**
+     * Almacena una nueva propiedad.
+     */
+    public function propertiesStore(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:150',
+            'slug' => 'required|string|max:150|unique:properties,slug',
+            'description' => 'nullable|string',
+            'address' => 'nullable|string|max:200',
+            'city' => 'nullable|string|max:100',
+            'capacity' => 'required|integer|min:1|max:50',
+        ]);
+
+        $property = Property::create($validated);
+
+        return redirect()
+            ->route('admin.properties.index')
+            ->with('success', 'Propiedad creada correctamente.');
+    }
+
+    /**
+     * Restaura una propiedad soft-deleted.
+     */
+    public function propertiesRestore($propertyId)
+    {
+        $property = Property::withTrashed()->findOrFail($propertyId);
+        
+        if (!$property->trashed()) {
+            return back()->with('error', 'La propiedad no está dada de baja.');
+        }
+
+        $property->restore();
+
+        return back()->with('success', 'Propiedad restaurada correctamente.');
+    }
+
+    /**
+     * Muestra el calendario con la propiedad pre-seleccionada si se pasa property_id.
+     */
+    public function calendarIndex(Request $request)
+    {
+        $selectedPropertyId = $request->query('property_id');
+        return view('admin.calendar.index', compact('selectedPropertyId'));
+    }
 }
+

@@ -3,11 +3,24 @@
     <h2 class="font-semibold text-xl text-gray-800 leading-tight">Calendario (bloquear/desbloquear)</h2>
   </x-slot>
 
-  <div class="mb-4 flex gap-2">
-    <a href="{{ route('admin.dashboard') }}" class="px-3 py-1 rounded bg-gray-100 border text-sm hover:bg-gray-200">← Panel</a>
-    <a href="{{ route('admin.property.index') }}" class="px-3 py-1 rounded bg-gray-100 border text-sm hover:bg-gray-200">Propiedad</a>
-    <a href="{{ route('admin.photos.index') }}" class="px-3 py-1 rounded bg-gray-100 border text-sm hover:bg-gray-200">Fotos</a>
-    <a href="{{ route('admin.calendar.index') }}" class="px-3 py-1 rounded bg-indigo-100 border border-indigo-300 text-sm font-semibold">Calendario</a>
+  <div class="py-12">
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+      @if(isset($selectedPropertyId))
+        @php
+          $property = \App\Models\Property::find($selectedPropertyId);
+        @endphp
+        <div class="mb-4 flex gap-2">
+          <a href="{{ route('admin.properties.dashboard', $selectedPropertyId) }}" class="px-3 py-1 rounded bg-gray-100 border text-sm hover:bg-gray-200">← Volver al dashboard</a>
+          <a href="{{ route('admin.property.index', $selectedPropertyId) }}" class="px-3 py-1 rounded bg-gray-100 border text-sm hover:bg-gray-200">Propiedad</a>
+          <a href="{{ route('admin.photos.index', $selectedPropertyId) }}" class="px-3 py-1 rounded bg-gray-100 border text-sm hover:bg-gray-200">Fotos</a>
+          <a href="{{ route('admin.calendar.index') }}?property_id={{ $selectedPropertyId }}" class="px-3 py-1 rounded bg-indigo-100 border border-indigo-300 text-sm font-semibold">Calendario</a>
+        </div>
+      @else
+        <div class="mb-4 flex gap-2">
+          <a href="{{ route('admin.properties.index') }}" class="px-3 py-1 rounded bg-gray-100 border text-sm hover:bg-gray-200">← Gestión de propiedades</a>
+        </div>
+      @endif
+    </div>
   </div>
 
   <div class="max-w-3xl mx-auto p-6 bg-white rounded shadow mt-6 space-y-6">
@@ -30,7 +43,9 @@
         <label class="block text-sm">Alojamiento</label>
         <select name="property_id" class="border rounded px-2 py-1 w-full">
           @foreach(\App\Models\Property::select('id','name')->get() as $p)
-            <option value="{{ $p->id }}">{{ $p->name }}</option>
+            <option value="{{ $p->id }}" {{ (isset($selectedPropertyId) && $selectedPropertyId == $p->id) ? 'selected' : '' }}>
+              {{ $p->name }}
+            </option>
           @endforeach
         </select>
         @error('property_id') <p class="text-red-600 text-sm">{{ $message }}</p> @enderror
@@ -57,7 +72,9 @@
         <label class="block text-sm">Alojamiento</label>
         <select name="property_id" class="border rounded px-2 py-1 w-full">
           @foreach(App\Models\Property::select('id','name')->get() as $p)
-            <option value="{{ $p->id }}">{{ $p->name }}</option>
+            <option value="{{ $p->id }}" {{ (isset($selectedPropertyId) && $selectedPropertyId == $p->id) ? 'selected' : '' }}>
+              {{ $p->name }}
+            </option>
           @endforeach
         </select>
       </div>

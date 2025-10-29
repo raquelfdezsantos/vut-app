@@ -19,6 +19,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Seeder principal: crea usuarios, la propiedad principal, fotos y calendario
         $this->call(InitialDataSeeder::class);
+        
+        // MultiPropertySeeder: Añade 3 propiedades adicionales para demostrar escalabilidad (RNF9)
+        // Solo descomentar para DEMO o DEFENSA del proyecto. En producción no es necesario.
+        // $this->call(MultiPropertySeeder::class);
     }
 }

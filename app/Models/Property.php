@@ -15,6 +15,21 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Property extends Model
 {
     use HasFactory, SoftDeletes;
+
+    /**
+     * Campos asignables en masa.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'name',
+        'slug',
+        'description',
+        'address',
+        'city',
+        'capacity',
+    ];
+
     /**
      * Relación: una propiedad puede tener muchas fotos.
      *

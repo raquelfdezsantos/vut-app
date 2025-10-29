@@ -45,6 +45,12 @@
                         </x-slot>
 
                         <x-slot name="content">
+                            @if(auth()->user()->role === 'admin')
+                                <x-dropdown-link href="{{ route('admin.properties.index') }}">
+                                    {{ __('Gestionar Propiedades') }}
+                                </x-dropdown-link>
+                            @endif
+
                             @if(auth()->user()->role === 'customer')
                                 <x-dropdown-link href="{{ route('reservas.index') }}">
                                     {{ __('Mis reservas') }}
