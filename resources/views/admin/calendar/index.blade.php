@@ -3,6 +3,13 @@
     <h2 class="font-semibold text-xl text-gray-800 leading-tight">Calendario (bloquear/desbloquear)</h2>
   </x-slot>
 
+  <div class="mb-4 flex gap-2">
+    <a href="{{ route('admin.dashboard') }}" class="px-3 py-1 rounded bg-gray-100 border text-sm hover:bg-gray-200">← Panel</a>
+    <a href="{{ route('admin.property.index') }}" class="px-3 py-1 rounded bg-gray-100 border text-sm hover:bg-gray-200">Propiedad</a>
+    <a href="{{ route('admin.photos.index') }}" class="px-3 py-1 rounded bg-gray-100 border text-sm hover:bg-gray-200">Fotos</a>
+    <a href="{{ route('admin.calendar.index') }}" class="px-3 py-1 rounded bg-indigo-100 border border-indigo-300 text-sm font-semibold">Calendario</a>
+  </div>
+
   <div class="max-w-3xl mx-auto p-6 bg-white rounded shadow mt-6 space-y-6">
     @if (session('success'))
       <div class="p-3 bg-green-100 text-green-700 rounded">{{ session('success') }}</div>

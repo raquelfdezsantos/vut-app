@@ -11,7 +11,7 @@
             <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                 @foreach($property->photos->sortBy('sort_order') as $photo)
                     <img
-                        src="{{ $photo->url }}"
+                        src="{{ str_starts_with($photo->url, 'http') ? $photo->url : asset('storage/' . $photo->url) }}"
                         alt="Foto"
                         class="w-full h-48 md:h-56 object-cover rounded-lg"
                         loading="lazy"

@@ -14,11 +14,13 @@
 
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
-                </div>
+                @if(!auth()->check() || auth()->user()->role !== 'admin')
+                    <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                            {{ __('Dashboard') }}
+                        </x-nav-link>
+                    </div>
+                @endif
             </div>
 
 
@@ -52,12 +54,6 @@
                             @if(auth()->user()->role === 'customer')
                                 <x-dropdown-link :href="route('invoices.index')" :active="request()->routeIs('invoices.*')">
                                     Mis facturas
-                                </x-dropdown-link>
-                            @endif
-
-                            @if(auth()->user()->role === 'admin')
-                                <x-dropdown-link href="{{ route('admin.dashboard') }}">
-                                    {{ __('Panel admin') }}
                                 </x-dropdown-link>
                             @endif
 

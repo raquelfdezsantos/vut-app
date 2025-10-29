@@ -52,17 +52,27 @@ Route::middleware(['auth', 'role:admin'])
     ->group(function () {
         Route::get('/', [AdminController::class, 'index'])->name('dashboard');
 
-        // Stubs de vistas 
-        Route::view('/property', 'admin.property.index')->name('property.index');
-        Route::view('/photos',   'admin.photos.index')->name('photos.index');
-        Route::view('/calendar', 'admin.calendar.index')->name('calendar.index');
+        // Gestión de propiedad
+        Route::get('/property', [AdminController::class, 'propertyEdit'])->name('property.index');
+        Route::put('/property/{property}', [AdminController::class, 'propertyUpdate'])->name('property.update');
+        Route::delete('/property/{property}', [AdminController::class, 'destroyProperty'])->name('property.destroy');
 
-        // Editar, actualizar y cancelar reserva
+        // Gestión de fotos
+        Route::get('/photos', [AdminController::class, 'photosIndex'])->name('photos.index');
+        Route::post('/photos', [AdminController::class, 'photosStore'])->name('photos.store');
+        Route::delete('/photos/{photo}', [AdminController::class, 'photosDestroy'])->name('photos.destroy');
+        Route::post('/photos/reorder', [AdminController::class, 'photosReorder'])->name('photos.reorder');
+        Route::post('/photos/{photo}/set-cover', [AdminController::class, 'photosSetCover'])->name('photos.set-cover');
+
+        // Calendario
+        Route::view('/calendar', 'admin.calendar.index')->name('calendar.index');
+        Route::post('/calendar/block',   [AdminController::class, 'blockDates'])->name('calendar.block');
+        Route::post('/calendar/unblock', [AdminController::class, 'unblockDates'])->name('calendar.unblock');
+
+        // Reservas
         Route::post('/reservations/{id}/cancel', [AdminController::class, 'cancel'])->name('reservations.cancel');
         Route::get('/reservations/{id}/edit', [AdminController::class, 'edit'])->name('reservations.edit');
         Route::put('/reservations/{id}', [AdminController::class, 'update'])->name('reservations.update');
-
-        // Reembolso de reserva
         Route::post('/reservations/{id}/refund', [AdminController::class, 'refund'])->name('reservations.refund');
 
         // Listado de facturas
@@ -70,13 +80,9 @@ Route::middleware(['auth', 'role:admin'])
             ->name('invoices.index');
         Route::get('/invoices/{number}', [InvoiceController::class, 'show'])
             ->name('invoices.show');
-
-        // Bloquear / desbloquear noches en el calendario (ADMIN)
-        Route::post('/calendar/block',   [AdminController::class, 'blockDates'])->name('calendar.block');
-        Route::post('/calendar/unblock', [AdminController::class, 'unblockDates'])->name('calendar.unblock');
     });
 
-    
+
 /*
 |--------------------------------------------------------------------------
 | Área CLIENTE (reservas)

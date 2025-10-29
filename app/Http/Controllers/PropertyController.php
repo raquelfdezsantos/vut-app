@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Property;
+use App\Models\RateCalendar;
+use Carbon\Carbon;
 
 /**
  * Controlador de propiedades.
@@ -50,12 +52,12 @@ class PropertyController extends Controller
         $fromPrice = optional($property->rateCalendar->first())->price ?? null;
 
         // Cargar fechas bloqueadas para mostrar al usuario
-        $blockedDates = \App\Models\RateCalendar::where('property_id', $property->id)
+        $blockedDates = RateCalendar::where('property_id', $property->id)
             ->where('is_available', false)
             ->whereDate('date', '>=', now()->toDateString())
             ->orderBy('date')
             ->pluck('date')
-            ->map(fn($d) => \Carbon\Carbon::parse($d)->format('Y-m-d'))
+            ->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))
             ->toArray();
 
         return view('property.show', compact('property', 'fromPrice', 'blockedDates'));

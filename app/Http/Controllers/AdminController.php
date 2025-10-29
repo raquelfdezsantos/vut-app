@@ -18,6 +18,7 @@ use App\Models\Reservation;
 use App\Models\RateCalendar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Carbon\CarbonPeriod;
 use Carbon\Carbon;
 use App\Models\Payment;
@@ -27,6 +28,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\ReservationCancelledMail;
 use App\Mail\PaymentRefundIssuedMail;
 use App\Mail\ReservationUpdatedMail;
+use App\Mail\PropertyDeletedConfirmationMail;
 
 class AdminController extends Controller
 {
@@ -401,5 +403,238 @@ class AdminController extends Controller
         }); 
 
         return back()->with('success', 'Noches desbloqueadas correctamente.');
+    }
+
+    /**
+     * Soft delete de la propiedad con cancelación de reservas futuras.
+     */
+    public function destroyProperty(Property $property)
+    {
+        DB::beginTransaction();
+
+        try {
+            // 1. Obtener reservas futuras activas (pending o paid)
+            $futureReservations = Reservation::where('property_id', $property->id)
+                ->where('check_in', '>=', now())
+                ->whereIn('status', ['pending', 'paid'])
+                ->get();
+
+            $cancelledCount = 0;
+            $totalRefunded = 0.0;
+
+            // 2. Cancelar cada reserva futura
+            foreach ($futureReservations as $reservation) {
+                // Liberar fechas del calendario
+                $period = CarbonPeriod::create($reservation->check_in, $reservation->check_out->subDay());
+                foreach ($period as $date) {
+                    RateCalendar::where('property_id', $property->id)
+                        ->where('date', $date->toDateString())
+                        ->update(['is_available' => true, 'blocked_by' => null]);
+                }
+
+                // Si estaba pagada, registrar reembolso
+                if ($reservation->status === 'paid') {
+                    $refund = Payment::create([
+                        'reservation_id' => $reservation->id,
+                        'amount' => -$reservation->total_price,
+                        'method' => 'refund',
+                        'status' => 'refunded',
+                        'provider_ref' => 'refund_' . Str::uuid(),
+                    ]);
+
+                    $totalRefunded += $reservation->total_price;
+
+                    // Enviar email de reembolso al cliente
+                    if ($reservation->user && $reservation->user->email) {
+                        Mail::to($reservation->user->email)->send(
+                            new PaymentRefundIssuedMail($reservation, $refund)
+                        );
+                    }
+                }
+
+                // Marcar reserva como cancelada
+                $reservation->update(['status' => 'cancelled']);
+
+                // Enviar email de cancelación al cliente
+                if ($reservation->user && $reservation->user->email) {
+                    Mail::to($reservation->user->email)->send(
+                        new ReservationCancelledMail($reservation)
+                    );
+                }
+
+                $cancelledCount++;
+            }
+
+            // 3. Soft delete de la propiedad
+            $property->delete();
+
+            // 4. Enviar email de confirmación al admin
+            $admin = Auth::user();
+            if ($admin && $admin->email) {
+                Mail::to($admin->email)->send(
+                    new PropertyDeletedConfirmationMail(
+                        $property->name ?? 'Propiedad',
+                        $cancelledCount,
+                        $totalRefunded
+                    )
+                );
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('admin.dashboard')
+                ->with('success', 
+                    "Propiedad dada de baja. Canceladas {$cancelledCount} reserva(s). Reembolsado: " . 
+                    number_format($totalRefunded, 2, ',', '.') . " €"
+                );
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error al dar de baja la propiedad: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Muestra el formulario de edición de la propiedad.
+     */
+    public function propertyEdit()
+    {
+        $property = Property::withTrashed()->first();
+        
+        if (!$property) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'No hay ninguna propiedad en el sistema.');
+        }
+
+        // Contar reservas futuras activas
+        $futureReservationsCount = Reservation::where('property_id', $property->id)
+            ->where('check_in', '>=', now())
+            ->whereIn('status', ['pending', 'paid'])
+            ->count();
+
+        return view('admin.property.index', compact('property', 'futureReservationsCount'));
+    }
+
+    /**
+     * Actualiza los datos de la propiedad.
+     */
+    public function propertyUpdate(Request $request, Property $property)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:150',
+            'description' => 'nullable|string',
+            'address' => 'nullable|string|max:200',
+            'city' => 'nullable|string|max:100',
+            'capacity' => 'required|integer|min:1|max:50',
+        ]);
+
+        $property->update($validated);
+
+        return back()->with('success', 'Propiedad actualizada correctamente.');
+    }
+
+    /**
+     * Muestra la página de gestión de fotos.
+     */
+    public function photosIndex()
+    {
+        $property = Property::withTrashed()->first();
+        
+        if (!$property) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'No hay ninguna propiedad en el sistema.');
+        }
+
+        // Cargar fotos ordenadas por sort_order
+        $photos = $property->photos()->orderBy('sort_order')->get();
+
+        return view('admin.photos.index', compact('property', 'photos'));
+    }
+
+    /**
+     * Sube una o varias fotos a la propiedad.
+     */
+    public function photosStore(Request $request)
+    {
+        $property = Property::first();
+        
+        if (!$property) {
+            return back()->with('error', 'No hay ninguna propiedad en el sistema.');
+        }
+
+        $request->validate([
+            'photos' => 'required|array|min:1|max:10',
+            'photos.*' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120', // 5MB máximo
+        ]);
+
+        // Obtener el último sort_order
+        $lastSortOrder = $property->photos()->max('sort_order') ?? 0;
+
+        foreach ($request->file('photos') as $index => $photo) {
+            // Guardar archivo en storage/app/public/photos
+            $path = $photo->store('photos', 'public');
+
+            // Crear registro en BD
+            $property->photos()->create([
+                'url' => $path,
+                'sort_order' => $lastSortOrder + $index + 1,
+                'is_cover' => false, // Por defecto no es portada
+            ]);
+        }
+
+        $count = count($request->file('photos'));
+        return back()->with('success', "{$count} foto(s) subida(s) correctamente.");
+    }
+
+    /**
+     * Elimina una foto.
+     */
+    public function photosDestroy($photoId)
+    {
+        $photo = \App\Models\Photo::findOrFail($photoId);
+
+        // Eliminar archivo físico solo si es local (no URL externa)
+        if (!str_starts_with($photo->url, 'http')) {
+            \Storage::disk('public')->delete($photo->url);
+        }
+
+        // Eliminar registro de BD
+        $photo->delete();
+
+        return back()->with('success', 'Foto eliminada correctamente.');
+    }
+
+    /**
+     * Actualiza el orden de las fotos.
+     */
+    public function photosReorder(Request $request)
+    {
+        $request->validate([
+            'order' => 'required|array',
+            'order.*' => 'required|integer|exists:photos,id',
+        ]);
+
+        foreach ($request->order as $index => $photoId) {
+            \App\Models\Photo::where('id', $photoId)->update(['sort_order' => $index + 1]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Marca una foto como portada (is_cover).
+     */
+    public function photosSetCover($photoId)
+    {
+        $photo = \App\Models\Photo::findOrFail($photoId);
+        
+        // Quitar is_cover de todas las fotos de la propiedad
+        \App\Models\Photo::where('property_id', $photo->property_id)->update(['is_cover' => false]);
+        
+        // Marcar la seleccionada
+        $photo->update(['is_cover' => true]);
+
+        return back()->with('success', 'Foto marcada como portada.');
     }
 }
