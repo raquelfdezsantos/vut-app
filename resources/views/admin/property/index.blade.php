@@ -132,6 +132,46 @@
                                 @enderror
                             </div>
 
+                            {{-- Licencia turística --}}
+                            <div>
+                                <label for="tourism_license" class="block text-sm font-medium text-gray-700">
+                                    Nº Licencia Turística
+                                </label>
+                                <input 
+                                    type="text" 
+                                    name="tourism_license" 
+                                    id="tourism_license"
+                                    value="{{ old('tourism_license', $property->tourism_license) }}"
+                                    maxlength="100"
+                                    placeholder="VT-28-0001234"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                >
+                                <p class="mt-1 text-xs text-gray-500">Número de licencia turística oficial</p>
+                                @error('tourism_license')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            {{-- Registro de alquiler --}}
+                            <div>
+                                <label for="rental_registration" class="block text-sm font-medium text-gray-700">
+                                    Nº Registro de Alquiler
+                                </label>
+                                <input 
+                                    type="text" 
+                                    name="rental_registration" 
+                                    id="rental_registration"
+                                    value="{{ old('rental_registration', $property->rental_registration) }}"
+                                    maxlength="100"
+                                    placeholder="ATR-28-001234-2024"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                >
+                                <p class="mt-1 text-xs text-gray-500">Número de registro único de alquiler</p>
+                                @error('rental_registration')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
                             {{-- Botón de guardar --}}
                             <div class="flex items-center justify-between">
                                 <button 

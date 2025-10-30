@@ -26,6 +26,11 @@ Route::get('/', fn() => view('welcome'))->name('home');
 Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
 Route::get('/propiedad/{property:slug}', [PropertyController::class, 'show'])->name('properties.show');
 
+// Páginas legales
+Route::get('/aviso-legal', fn() => view('legal.aviso-legal'))->name('legal.aviso');
+Route::get('/politica-privacidad', fn() => view('legal.politica-privacidad'))->name('legal.privacidad');
+Route::get('/cookies', fn() => view('legal.cookies'))->name('legal.cookies');
+
 /*
 |--------------------------------------------------------------------------
 | Rutas protegidas comunes (Breeze)

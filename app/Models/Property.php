@@ -28,6 +28,8 @@ class Property extends Model
         'address',
         'city',
         'capacity',
+        'tourism_license',
+        'rental_registration',
     ];
 
     /**

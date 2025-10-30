@@ -532,6 +532,8 @@ class AdminController extends Controller
             'address' => 'nullable|string|max:200',
             'city' => 'nullable|string|max:100',
             'capacity' => 'required|integer|min:1|max:50',
+            'tourism_license' => 'nullable|string|max:100',
+            'rental_registration' => 'nullable|string|max:100',
         ]);
 
         $property->update($validated);
@@ -705,6 +707,8 @@ class AdminController extends Controller
             'address' => 'nullable|string|max:200',
             'city' => 'nullable|string|max:100',
             'capacity' => 'required|integer|min:1|max:50',
+            'tourism_license' => 'nullable|string|max:100',
+            'rental_registration' => 'nullable|string|max:100',
         ]);
 
         $property = Property::create($validated);

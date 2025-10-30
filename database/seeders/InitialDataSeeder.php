@@ -55,6 +55,8 @@ class InitialDataSeeder extends Seeder
                 'address' => 'Calle Mayor 1',
                 'city' => 'Madrid',
                 'capacity' => 4,
+                'tourism_license' => 'VT-28-0001234',
+                'rental_registration' => 'ATR-28-001234-2024',
             ]
         );
 
