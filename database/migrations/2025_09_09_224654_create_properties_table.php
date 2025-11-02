@@ -18,6 +18,8 @@ return new class extends Migration
             $table->longText('description')->nullable();
             $table->string('address', 200)->nullable();
             $table->string('city', 100)->nullable();
+            $table->string('postal_code', 10)->nullable();
+            $table->string('province', 100)->nullable();
             $table->unsignedSmallInteger('capacity')->default(4);
             $table->timestamps();
         });

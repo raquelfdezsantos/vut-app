@@ -27,9 +27,13 @@ class Property extends Model
         'description',
         'address',
         'city',
+        'postal_code',
+        'province',
         'capacity',
         'tourism_license',
         'rental_registration',
+        'latitude',
+        'longitude',
     ];
 
     /**

@@ -52,8 +52,10 @@ class InitialDataSeeder extends Seeder
             [
                 'name' => 'Piso Turístico Centro',
                 'description' => 'Alojamiento cómodo en el centro. Cerca de todo.',
-                'address' => 'Calle Mayor 1',
-                'city' => 'Madrid',
+                'address' => 'Avenida de Portugal, 18',
+                'city' => 'Gijón',
+                'postal_code' => '33207',
+                'province' => 'Asturias',
                 'capacity' => 4,
                 'tourism_license' => 'VT-28-0001234',
                 'rental_registration' => 'ATR-28-001234-2024',
