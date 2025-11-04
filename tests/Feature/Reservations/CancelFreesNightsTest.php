@@ -29,11 +29,14 @@ it('cancelar libera noches (is_available=true)', function () {
     actingAs($admin);
     post(route('admin.reservations.cancel', $res->id))->assertRedirect();
 
+    // Verificar que las noches se liberaron
     foreach ([10,11,12] as $d) {
-        assertDatabaseHas('rate_calendars', [
-            'property_id' => $prop->id,
-            'date' => now()->addDays($d)->toDateString(),
-            'is_available' => true,
-        ]);
+        $date = now()->addDays($d)->toDateString();
+        $calendar = RateCalendar::where('property_id', $prop->id)
+            ->whereDate('date', $date)
+            ->first();
+        
+        expect($calendar)->not->toBeNull();
+        expect($calendar->is_available)->toBeTrue();
     }
 });

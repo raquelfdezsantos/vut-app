@@ -224,7 +224,13 @@ class AdminController extends Controller
         }
 
         $rates = RateCalendar::where('property_id', $property->id)
-            ->whereIn('date', $newDates)->get()->keyBy('date');
+            ->where(function($q) use ($newDates) {
+                foreach ($newDates as $d) {
+                    $q->orWhereDate('date', $d);
+                }
+            })
+            ->get()
+            ->keyBy(fn($r) => $r->date->toDateString());
 
         foreach ($newDates as $d) {
             $rate = $rates->get($d);

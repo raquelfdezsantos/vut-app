@@ -311,8 +311,19 @@ class ReservationController extends Controller
 
         foreach ($newDates as $d) {
             $rate = $rates->get($d);
+            $inOldDates = in_array($d, $oldDates, true);
+            
+            Log::info('[UPDATE] Verificando fecha', [
+                'date' => $d,
+                'rate_exists' => !!$rate,
+                'is_available' => $rate ?$rate->is_available : null,
+                'in_old_dates' => $inOldDates,
+                'old_dates' => $oldDates,
+            ]);
+            
             // Si el día nuevo no existe o no está libre y no pertenece al rango antiguo, error
-            if (!$rate || (!$rate->is_available && !in_array($d, $oldDates, true))) {
+            if (!$rate || (!$rate->is_available && !$inOldDates)) {
+                Log::error('[UPDATE] No disponible', ['date' => $d]);
                 return back()->withErrors(['check_in' => "No hay disponibilidad el día $d."]);
             }
         }
@@ -325,6 +336,13 @@ class ReservationController extends Controller
         }
 
         $newTotal = $rates->sum('price') * (int)$data['guests'];
+        
+        Log::info('[UPDATE] Nuevo total calculado', [
+            'rates_sum' => $rates->sum('price'),
+            'guests' => $data['guests'],
+            'newTotal' => $newTotal,
+            'rates' => $rates->pluck('price', 'date')->toArray(),
+        ]);
 
         DB::transaction(function () use ($reservation, $property, $oldDates, $newDates, $newTotal, $data) {
             // liberar antiguas y bloquear nuevas (excluye checkout)

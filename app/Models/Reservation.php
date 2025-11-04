@@ -91,10 +91,17 @@ class Reservation extends Model
 
 
     /**
-     * Devuelve el total pagado neto (pagos - devoluciones).
+     * Total realmente pagado (succeeded) menos refunds.
      */
     public function paidAmount(): float
     {
+        // Si la relación está cargada, usarla; si no, hacer query
+        if ($this->relationLoaded('payments')) {
+            $paid = $this->payments->where('status', 'succeeded')->sum('amount');
+            $refunded = $this->payments->where('status', 'refunded')->sum('amount');
+            return (float)($paid + $refunded); // refunds son negativos
+        }
+        
         $paid = (float) $this->payments()->where('status', 'succeeded')->sum('amount');
         $refunded = (float) $this->payments()->where('status', 'refunded')->sum('amount');
         return $paid + $refunded; // refunds son negativos
@@ -102,6 +109,10 @@ class Reservation extends Model
 
     public function refundedAmount(): float
     {
+        if ($this->relationLoaded('payments')) {
+            return (float) $this->payments->where('status', 'refunded')->sum('amount');
+        }
+        
         return (float) $this->payments()
             ->where('status', 'refunded')
             ->sum('amount');
