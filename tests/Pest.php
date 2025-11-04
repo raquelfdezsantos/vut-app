@@ -5,7 +5,9 @@ use Illuminate\Support\Facades\Mail;
 
 uses(Tests\TestCase::class, RefreshDatabase::class)->in(__DIR__);
 
-// Evitar envíos reales de correo durante los tests
+uses(RefreshDatabase::class)->in('Feature');
+
+// Evitar envíos reales durante los tests
 beforeEach(function () {
 	Mail::fake();
     Notification::fake();
