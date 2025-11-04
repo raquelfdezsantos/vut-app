@@ -82,12 +82,11 @@
 
                                         {{-- Pagar diferencia si procede --}}
                                         @if($r->status === 'paid' && method_exists($r, 'balanceDue') && $r->balanceDue() > 0)
-                                            <form method="POST" action="{{ route('reservations.pay_difference', $r->id) }}"
+                                            <form method="POST" action="{{ route('stripe.checkout.difference', $r->id) }}"
                                                 class="inline">
                                                 @csrf
-                                                <button class="text-amber-600 hover:underline"
-                                                    onclick="return confirm('Pagar diferencia de {{ number_format($r->balanceDue(), 2, ',', '.') }} €?')">
-                                                    Pagar diferencia
+                                                <button class="text-amber-600 hover:underline">
+                                                    Pagar diferencia ({{ number_format($r->balanceDue(), 2, ',', '.') }} €)
                                                 </button>
                                             </form>
                                         @endif

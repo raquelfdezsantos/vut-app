@@ -186,29 +186,69 @@
                 <script>
                     document.addEventListener('DOMContentLoaded', function () {
                         const blockedDates = @json($blockedDates);
+                        const checkinDates = @json($checkinDates);
+                        const checkoutDates = @json($checkoutDates);
 
                         // Configurar Flatpickr para check-in
                         const checkInPicker = flatpickr('#check_in', {
                             locale: 'es',
                             minDate: 'today',
                             dateFormat: 'Y-m-d',
-                            disable: blockedDates,
+                            // Bloquear días donde haya check-in (independiente de si hay check-out)
+                            disable: [
+                                function(date) {
+                                    const year = date.getFullYear();
+                                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                                    const day = String(date.getDate()).padStart(2, '0');
+                                    const dateStr = `${year}-${month}-${day}`;
+                                    
+                                    // Si hay check-in ese día → BLOQUEAR (noche ocupada)
+                                    if (checkinDates.includes(dateStr)) {
+                                        return true;
+                                    }
+                                    
+                                    // Si NO hay check-in pero está en blockedDates → BLOQUEAR
+                                    if (blockedDates.includes(dateStr)) {
+                                        return true;
+                                    }
+                                    
+                                    // En cualquier otro caso → PERMITIR
+                                    return false;
+                                }
+                            ],
                             onChange: function (selectedDates, dateStr) {
                                 // Actualizar min date del check-out
-                                if (selectedDates.length > 0) {
-                                    const nextDay = new Date(selectedDates[0]);
-                                    nextDay.setDate(nextDay.getDate() + 1);
+                                if (dateStr) {
+                                    // Usar dateStr directamente para evitar problemas de zona horaria
+                                    const parts = dateStr.split('-');
+                                    const nextDay = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]) + 1);
                                     checkOutPicker.set('minDate', nextDay);
                                 }
                             },
                             onDayCreate: function (dObj, dStr, fp, dayElem) {
-                                const date = dayElem.dateObj.toISOString().split('T')[0];
-                                if (blockedDates.includes(date)) {
-                                    dayElem.classList.add('flatpickr-disabled');
+                                const date = dayElem.dateObj;
+                                const year = date.getFullYear();
+                                const month = String(date.getMonth() + 1).padStart(2, '0');
+                                const day = String(date.getDate()).padStart(2, '0');
+                                const dateStr = `${year}-${month}-${day}`;
+                                
+                                // PRIORIDAD 1: Si hay check-in → ROJO (aunque haya check-out)
+                                if (checkinDates.includes(dateStr)) {
                                     dayElem.style.backgroundColor = '#ffebee';
                                     dayElem.style.color = '#c62828';
-                                } else {
+                                    dayElem.title = 'Check-in programado - no disponible';
+                                }
+                                // PRIORIDAD 2: Si está bloqueado (sin check-in) → ROJO
+                                else if (blockedDates.includes(dateStr)) {
+                                    dayElem.style.backgroundColor = '#ffebee';
+                                    dayElem.style.color = '#c62828';
+                                    dayElem.title = 'Noche ocupada - no disponible';
+                                }
+                                // PRIORIDAD 3: Todo lo demás → VERDE (incluye días solo check-out)
+                                else {
                                     dayElem.style.backgroundColor = '#e8f5e9';
+                                    dayElem.style.color = '#2e7d32';
+                                    dayElem.title = 'Disponible para check-in';
                                 }
                             }
                         });
@@ -218,35 +258,62 @@
                             locale: 'es',
                             minDate: new Date().fp_incr(1), // mañana
                             dateFormat: 'Y-m-d',
-                            disable: blockedDates,
-                            onChange: function (selectedDates, dateStr) {
-                                // Validar que no haya fechas bloqueadas en el rango
-                                const checkIn = checkInPicker.selectedDates[0];
-                                const checkOut = selectedDates[0];
-
-                                if (checkIn && checkOut) {
-                                    let hasBlocked = false;
-                                    const current = new Date(checkIn);
-
-                                    while (current < checkOut) {
-                                        const dateStr = current.toISOString().split('T')[0];
-                                        if (blockedDates.includes(dateStr)) {
-                                            hasBlocked = true;
-                                            break;
+                            // Deshabilitar fechas donde haya noches bloqueadas en el rango
+                            disable: [
+                                function(date) {
+                                    const checkInStr = document.getElementById('check_in').value;
+                                    if (!checkInStr) return false;
+                                    
+                                    // Usar formato local para evitar problemas de zona horaria
+                                    const year = date.getFullYear();
+                                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                                    const day = String(date.getDate()).padStart(2, '0');
+                                    const checkOutStr = `${year}-${month}-${day}`;
+                                    
+                                    // Parsear fechas sin problemas de zona horaria
+                                    const checkInParts = checkInStr.split('-');
+                                    const checkOutParts = checkOutStr.split('-');
+                                    
+                                    const current = new Date(
+                                        parseInt(checkInParts[0]),
+                                        parseInt(checkInParts[1]) - 1,
+                                        parseInt(checkInParts[2])
+                                    );
+                                    
+                                    const end = new Date(
+                                        parseInt(checkOutParts[0]),
+                                        parseInt(checkOutParts[1]) - 1,
+                                        parseInt(checkOutParts[2])
+                                    );
+                                    
+                                    // Verificar si hay noches bloqueadas en el rango (check_in, check_out)
+                                    // Empezar desde el día siguiente al check-in
+                                    current.setDate(current.getDate() + 1);
+                                    
+                                    while (current < end) {
+                                        const year = current.getFullYear();
+                                        const month = String(current.getMonth() + 1).padStart(2, '0');
+                                        const day = String(current.getDate()).padStart(2, '0');
+                                        const nightStr = `${year}-${month}-${day}`;
+                                        
+                                        if (blockedDates.includes(nightStr)) {
+                                            return true; // Bloquear esta opción de check-out
                                         }
+                                        
                                         current.setDate(current.getDate() + 1);
                                     }
-
-                                    if (hasBlocked) {
-                                        alert('⚠️ El rango seleccionado incluye fechas no disponibles.');
-                                        checkOutPicker.clear();
-                                    }
+                                    
+                                    return false; // Permitir esta opción de check-out
                                 }
-                            },
+                            ],
                             onDayCreate: function (dObj, dStr, fp, dayElem) {
-                                const date = dayElem.dateObj.toISOString().split('T')[0];
-                                if (blockedDates.includes(date)) {
-                                    dayElem.classList.add('flatpickr-disabled');
+                                const date = dayElem.dateObj;
+                                const year = date.getFullYear();
+                                const month = String(date.getMonth() + 1).padStart(2, '0');
+                                const day = String(date.getDate()).padStart(2, '0');
+                                const dateStr = `${year}-${month}-${day}`;
+                                
+                                if (blockedDates.includes(dateStr)) {
                                     dayElem.style.backgroundColor = '#ffebee';
                                     dayElem.style.color = '#c62828';
                                 } else {

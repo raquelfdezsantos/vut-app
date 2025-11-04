@@ -84,11 +84,9 @@ class ReservationController extends Controller
         $period = CarbonPeriod::create($data['check_in'], $data['check_out'])->excludeEndDate();
         $dates  = collect($period)->map(fn($d) => $d->toDateString());
 
-        if ($dates->isEmpty()) {
-            return back()->withErrors(['check_in' => 'La fecha de salida debe ser posterior a la de entrada.'])->withInput();
-        }
-
         $nights = $dates->count();
+        
+        // Estancia mínima global
         $minStayGlobal = 2;
         if ($nights < $minStayGlobal) {
             return back()->withErrors(['check_in' => "La estancia mínima es de {$minStayGlobal} noches."])->withInput();
@@ -123,6 +121,10 @@ class ReservationController extends Controller
             ->exists();
 
         if ($overlap) {
+            Log::info('Overlap detectado', [
+                'nueva_check_in' => $data['check_in'],
+                'nueva_check_out' => $data['check_out'],
+            ]);
             return back()
                 ->withErrors(['check_in' => 'Las fechas seleccionadas no están disponibles.'])
                 ->withInput();
@@ -130,13 +132,28 @@ class ReservationController extends Controller
 
 
         $rates = RateCalendar::where('property_id', $property->id)
-            ->whereIn('date', $dates->all())
+            ->where(function($q) use ($dates) {
+                foreach ($dates as $d) {
+                    $q->orWhereDate('date', $d);
+                }
+            })
             ->get()
-            ->keyBy('date');
+            ->keyBy(fn($r) => $r->date->toDateString());
+
+        Log::info('Validando disponibilidad', [
+            'dates' => $dates->toArray(),
+            'rates_count' => $rates->count(),
+            'rates_keys' => $rates->keys()->toArray(),
+        ]);
 
         foreach ($dates as $d) {
             $rate = $rates->get($d);
             if (!$rate || !$rate->is_available) {
+                Log::warning('Fecha no disponible', [
+                    'date' => $d,
+                    'rate_exists' => $rate ? 'sí' : 'no',
+                    'is_available' => $rate ? $rate->is_available : 'N/A',
+                ]);
                 return back()->withErrors(['check_in' => 'No hay disponibilidad en alguna de las noches seleccionadas.'])->withInput();
             }
         }
@@ -171,6 +188,8 @@ class ReservationController extends Controller
             return $reservation;
         });
 
+        // Cargar relaciones necesarias para los emails
+        $reservation->loadMissing(['user', 'property']);
 
         // Emails (no romper si falla SMTP)
         try {
@@ -218,8 +237,13 @@ class ReservationController extends Controller
     private function setAvailability(int $propertyId, array $dates, bool $available): void
     {
         if (empty($dates)) return;
+        
         RateCalendar::where('property_id', $propertyId)
-            ->whereIn('date', $dates)
+            ->where(function($q) use ($dates) {
+                foreach ($dates as $d) {
+                    $q->orWhereDate('date', $d);
+                }
+            })
             ->update(['is_available' => $available]);
     }
 
@@ -244,7 +268,7 @@ class ReservationController extends Controller
 
         $data = $request->validate([
             'check_in'  => ['required', 'date'],
-            'check_out' => ['required', 'date', 'after:check_in'],
+            'check_out' => ['required', 'date', 'after_or_equal:check_in'],
             'guests'    => ['required', 'integer', 'min:1'],
         ]);
 
@@ -277,9 +301,13 @@ class ReservationController extends Controller
 
         // Comprobar disponibilidad de noches nuevas
         $rates = RateCalendar::where('property_id', $property->id)
-            ->whereIn('date', $newDates)
+            ->where(function($q) use ($newDates) {
+                foreach ($newDates as $d) {
+                    $q->orWhereDate('date', $d);
+                }
+            })
             ->get()
-            ->keyBy('date');
+            ->keyBy(fn($r) => $r->date->toDateString());
 
         foreach ($newDates as $d) {
             $rate = $rates->get($d);
@@ -311,6 +339,9 @@ class ReservationController extends Controller
             ]);
         });
 
+        // Refrescar modelo después de la transacción
+        $reservation->refresh();
+
         $paid   = $reservation->paidAmount(); // helper del modelo
         $diff   = $reservation->total_price - $paid; // >0 falta cobrar, <0 hay que devolver
 
@@ -332,10 +363,14 @@ class ReservationController extends Controller
             report($e);
         }
 
-        // Si falta cobrar (diff > 0) - no tocamos estado; botón “Pagar diferencia” se mostrará en la vista
+        // Si falta cobrar (diff > 0) - no tocamos estado; botón "Pagar diferencia" se mostrará en la vista
         // Si sobra dinero (diff < 0) - refund simulado
+        Log::info('Calculando diferencia', ['total_price' => $reservation->total_price, 'paid' => $paid, 'diff' => $diff]);
+        
         if ($diff < 0) {
             $refund = abs($diff);
+            Log::info('Procesando refund', ['refund' => $refund]);
+            
             DB::transaction(function () use ($reservation, $refund) {
                 Payment::create([
                     'reservation_id' => $reservation->id,
@@ -348,7 +383,9 @@ class ReservationController extends Controller
 
             try {
                 Mail::to($reservation->user->email)->send(new PaymentRefundIssuedMail($reservation, $refund));
+                Log::info('PaymentRefundIssuedMail enviado', ['email' => $reservation->user->email, 'refund' => $refund]);
             } catch (Throwable $e) {
+                Log::error('Fallo enviando PaymentRefundIssuedMail', ['msg' => $e->getMessage()]);
                 report($e);
             }
         }

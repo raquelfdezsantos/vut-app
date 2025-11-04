@@ -45,6 +45,45 @@ class StripeController extends Controller
             ]],
             'metadata' => [
                 'reservation_id' => (string) $reservation->id,
+                'payment_type' => 'full', // pago completo inicial
+            ],
+        ]);
+
+        return redirect()->away($session->url);
+    }
+
+    public function checkoutDifference(Request $request, Reservation $reservation)
+    {
+        $this->authorize('pay', $reservation);
+
+        $balance = $reservation->balanceDue();
+        
+        if ($balance <= 0.0) {
+            return back()->with('status', 'No hay importe pendiente.');
+        }
+
+        $stripe = new StripeClient(config('services.stripe.secret'));
+
+        $session = $stripe->checkout->sessions->create([
+            'mode' => 'payment',
+            'success_url' => route('stripe.success') . '?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url'  => route('stripe.cancel'),
+            'customer_email' => $reservation->user->email,
+            'line_items' => [[
+                'quantity' => 1,
+                'price_data' => [
+                    'currency' => 'eur',
+                    'unit_amount' => (int) round($balance * 100),
+                    'product_data' => [
+                        'name' => 'Diferencia de pago - ' . $reservation->property->name,
+                        'description' => 'Reserva #' . $reservation->id,
+                    ],
+                ],
+            ]],
+            'metadata' => [
+                'reservation_id' => (string) $reservation->id,
+                'payment_type' => 'difference', // pago de diferencia
+                'amount' => (string) $balance,
             ],
         ]);
 
@@ -80,7 +119,16 @@ class StripeController extends Controller
 
         $this->authorize('pay', $reservation);
         
-        // Idempotencia: si ya está paid y existe un pago “succeeded”, no repetir
+        // Detectar tipo de pago desde metadata
+        $paymentType = $session->metadata->payment_type ?? 'full';
+        
+        if ($paymentType === 'difference') {
+            // Pago de diferencia
+            return $this->handleDifferencePayment($reservation, $session);
+        }
+        
+        // Pago completo inicial
+        // Idempotencia: si ya está paid y existe un pago "succeeded", no repetir
         if ($reservation->status === 'paid' && $reservation->payments()->where('status', 'succeeded')->exists()) {
             return redirect()->route('reservas.index')->with('success', 'Pago confirmado.');
         }
@@ -132,6 +180,56 @@ class StripeController extends Controller
         return redirect()->route('reservas.index')->with('success', 'Pago realizado correctamente.');
     }
 
+    /**
+     * Gestiona el pago de la diferencia tras modificar una reserva.
+     */
+    private function handleDifferencePayment(Reservation $reservation, $session)
+    {
+        // Extraer el monto desde metadata
+        $amount = (float) ($session->metadata->amount ?? $reservation->balanceDue());
+        
+        // Idempotencia: evitar duplicados
+        $existingPayment = $reservation->payments()
+            ->where('provider_ref', $session->payment_intent ?? ('CS_' . $session->id))
+            ->first();
+            
+        if ($existingPayment) {
+            return redirect()->route('reservas.index')->with('success', 'Pago de diferencia ya registrado.');
+        }
+        
+        // Crear registro de pago
+        Payment::create([
+            'reservation_id' => $reservation->id,
+            'amount'        => $amount,
+            'method'        => 'stripe',
+            'status'        => 'succeeded',
+            'provider_ref'  => $session->payment_intent ?? ('CS_' . $session->id),
+        ]);
+        
+        // NO crear invoice - ya existe del pago inicial
+        // Enviar emails de confirmación
+        Log::info('Enviando email pago diferencia al cliente', ['email' => $reservation->user->email, 'amount' => $amount]);
+        try {
+            Mail::to($reservation->user->email)->send(
+                new \App\Mail\PaymentBalanceSettledMail($reservation, $amount)
+            );
+            Log::info('PaymentBalanceSettledMail enviado correctamente');
+        } catch (\Throwable $e) {
+            Log::error('Fallo enviando PaymentBalanceSettledMail: ' . $e->getMessage());
+        }
+        
+        Log::info('Enviando email pago diferencia al admin', ['email' => config('mail.admin_to', env('MAIL_ADMIN', 'admin@vut.test'))]);
+        try {
+            Mail::to(config('mail.admin_to', env('MAIL_ADMIN', 'admin@vut.test')))->send(
+                new \App\Mail\AdminPaymentBalanceSettledMail($reservation, $amount)
+            );
+            Log::info('AdminPaymentBalanceSettledMail enviado correctamente');
+        } catch (\Throwable $e) {
+            Log::error('Fallo enviando AdminPaymentBalanceSettledMail: ' . $e->getMessage());
+        }
+        
+        return redirect()->route('reservas.index')->with('success', 'Diferencia pagada correctamente.');
+    }
 
     public function cancel()
     {

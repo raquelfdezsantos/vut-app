@@ -156,6 +156,10 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
     // Crear sesión de Stripe Checkout (POST)
     Route::post('/checkout/{reservation}', [StripeController::class, 'checkout'])
         ->name('stripe.checkout');
+    
+    // Pagar diferencia tras modificar reserva
+    Route::post('/checkout/{reservation}/difference', [StripeController::class, 'checkoutDifference'])
+        ->name('stripe.checkout.difference');
 
     // URLs de retorno desde Stripe (GET)
     Route::get('/checkout/success', [StripeController::class, 'success'])

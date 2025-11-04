@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Property;
 use App\Models\RateCalendar;
+use App\Models\Reservation;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 
 /**
  * Controlador de propiedades.
@@ -51,15 +53,33 @@ class PropertyController extends Controller
 
         $fromPrice = optional($property->rateCalendar->first())->price ?? null;
 
-        // Cargar fechas bloqueadas para mostrar al usuario
-        $blockedDates = RateCalendar::where('property_id', $property->id)
-            ->where('is_available', false)
-            ->whereDate('date', '>=', now()->toDateString())
-            ->orderBy('date')
-            ->pluck('date')
-            ->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))
+        // Cargar fechas bloqueadas SOLO desde reservas activas
+        // Bloquear las NOCHES ocupadas: [check_in, check_out) - excluye el día de check-out
+        $reservations = Reservation::where('property_id', $property->id)
+            ->whereNotIn('status', ['cancelled'])
+            ->whereDate('check_out', '>', now()->toDateString())
+            ->get();
+            
+        $blockedDates = $reservations->flatMap(function ($reservation) {
+                $period = CarbonPeriod::create($reservation->check_in, $reservation->check_out)->excludeEndDate();
+                return collect($period)->map(fn($d) => $d->toDateString());
+            })
+            ->unique()
+            ->values()
+            ->toArray();
+            
+        // Días donde hay check-in (noche ocupada, aunque haya check-out también)
+        $checkinDates = $reservations->map(fn($r) => Carbon::parse($r->check_in)->format('Y-m-d'))
+            ->unique()
+            ->values()
+            ->toArray();
+            
+        // Días donde hay check-out (noche potencialmente libre)
+        $checkoutDates = $reservations->map(fn($r) => Carbon::parse($r->check_out)->format('Y-m-d'))
+            ->unique()
+            ->values()
             ->toArray();
 
-        return view('property.show', compact('property', 'fromPrice', 'blockedDates'));
+        return view('property.show', compact('property', 'fromPrice', 'blockedDates', 'checkinDates', 'checkoutDates'));
     }
 }
