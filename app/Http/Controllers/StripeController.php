@@ -218,9 +218,9 @@ class StripeController extends Controller
             Log::error('Fallo enviando PaymentBalanceSettledMail: ' . $e->getMessage());
         }
         
-        Log::info('Enviando email pago diferencia al admin', ['email' => config('mail.admin_to', env('MAIL_ADMIN', 'admin@vut.test'))]);
+        Log::info('Enviando email pago diferencia al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
         try {
-            Mail::to(config('mail.admin_to', env('MAIL_ADMIN', 'admin@vut.test')))->send(
+            Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))->send(
                 new \App\Mail\AdminPaymentBalanceSettledMail($reservation, $amount)
             );
             Log::info('AdminPaymentBalanceSettledMail enviado correctamente');

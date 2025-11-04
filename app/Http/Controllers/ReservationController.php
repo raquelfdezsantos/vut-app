@@ -345,32 +345,39 @@ class ReservationController extends Controller
         $paid   = $reservation->paidAmount(); // helper del modelo
         $diff   = $reservation->total_price - $paid; // >0 falta cobrar, <0 hay que devolver
 
-        // Emails con Mailables (cliente y admin)
-        Log::info('Intentando enviar ReservationUpdatedMail al cliente', ['email' => $reservation->user->email]);
-        try {
-            Mail::to($reservation->user->email)->send(new ReservationUpdatedMail($reservation));
-            Log::info('ReservationUpdatedMail enviado al cliente', ['email' => $reservation->user->email]);
-        } catch (Throwable $e) {
-            Log::error('Fallo ReservationUpdatedMail cliente', ['msg' => $e->getMessage()]);
-            report($e);
-        }
-        Log::info('Intentando enviar ReservationUpdatedMail al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
-        try {
-            Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))->send(new ReservationUpdatedMail($reservation));
-            Log::info('ReservationUpdatedMail enviado al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
-        } catch (Throwable $e) {
-            Log::error('Fallo ReservationUpdatedMail admin', ['msg' => $e->getMessage()]);
-            report($e);
-        }
-
-        // Si falta cobrar (diff > 0) - no tocamos estado; botón "Pagar diferencia" se mostrará en la vista
-        // Si sobra dinero (diff < 0) - refund simulado
+        // Si falta cobrar (diff > 0) - enviar email normal de actualización
+        // Si sobra dinero (diff < 0) - enviar email de modificación con devolución pendiente
         Log::info('Calculando diferencia', ['total_price' => $reservation->total_price, 'paid' => $paid, 'diff' => $diff]);
         
         if ($diff < 0) {
+            // Hay que devolver dinero
             $refund = abs($diff);
             Log::info('Procesando refund', ['refund' => $refund]);
             
+            // 1. Enviar email "Reserva modificada - devolución pendiente" (cliente y admin)
+            Log::info('Enviando ReservationModifiedRefundPendingMail al cliente', ['email' => $reservation->user->email]);
+            try {
+                Mail::to($reservation->user->email)->send(
+                    new \App\Mail\ReservationModifiedRefundPendingMail($reservation, $reservation->total_price, $refund)
+                );
+                Log::info('ReservationModifiedRefundPendingMail enviado al cliente');
+            } catch (Throwable $e) {
+                Log::error('Fallo ReservationModifiedRefundPendingMail cliente', ['msg' => $e->getMessage()]);
+                report($e);
+            }
+            
+            Log::info('Enviando ReservationModifiedRefundPendingMail al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
+            try {
+                Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))->send(
+                    new \App\Mail\ReservationModifiedRefundPendingMail($reservation, $reservation->total_price, $refund)
+                );
+                Log::info('ReservationModifiedRefundPendingMail enviado al admin');
+            } catch (Throwable $e) {
+                Log::error('Fallo ReservationModifiedRefundPendingMail admin', ['msg' => $e->getMessage()]);
+                report($e);
+            }
+            
+            // 2. Procesar la devolución
             DB::transaction(function () use ($reservation, $refund) {
                 Payment::create([
                     'reservation_id' => $reservation->id,
@@ -381,11 +388,42 @@ class ReservationController extends Controller
                 ]);
             });
 
+            // 3. Enviar email "Devolución completada" (cliente y admin)
+            Log::info('Enviando PaymentRefundIssuedMail al cliente', ['email' => $reservation->user->email, 'refund' => $refund]);
             try {
                 Mail::to($reservation->user->email)->send(new PaymentRefundIssuedMail($reservation, $refund));
-                Log::info('PaymentRefundIssuedMail enviado', ['email' => $reservation->user->email, 'refund' => $refund]);
+                Log::info('PaymentRefundIssuedMail enviado al cliente');
             } catch (Throwable $e) {
-                Log::error('Fallo enviando PaymentRefundIssuedMail', ['msg' => $e->getMessage()]);
+                Log::error('Fallo enviando PaymentRefundIssuedMail cliente', ['msg' => $e->getMessage()]);
+                report($e);
+            }
+            
+            Log::info('Enviando AdminPaymentRefundIssuedMail al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test'), 'refund' => $refund]);
+            try {
+                Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))->send(
+                    new \App\Mail\AdminPaymentRefundIssuedMail($reservation, $refund)
+                );
+                Log::info('AdminPaymentRefundIssuedMail enviado al admin');
+            } catch (Throwable $e) {
+                Log::error('Fallo enviando AdminPaymentRefundIssuedMail admin', ['msg' => $e->getMessage()]);
+                report($e);
+            }
+        } else {
+            // No hay devolución - enviar email normal de actualización
+            Log::info('Intentando enviar ReservationUpdatedMail al cliente', ['email' => $reservation->user->email]);
+            try {
+                Mail::to($reservation->user->email)->send(new ReservationUpdatedMail($reservation));
+                Log::info('ReservationUpdatedMail enviado al cliente', ['email' => $reservation->user->email]);
+            } catch (Throwable $e) {
+                Log::error('Fallo ReservationUpdatedMail cliente', ['msg' => $e->getMessage()]);
+                report($e);
+            }
+            Log::info('Intentando enviar ReservationUpdatedMail al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
+            try {
+                Mail::to(env('MAIL_ADMIN', 'admin@vut.test'))->send(new ReservationUpdatedMail($reservation));
+                Log::info('ReservationUpdatedMail enviado al admin', ['email' => env('MAIL_ADMIN', 'admin@vut.test')]);
+            } catch (Throwable $e) {
+                Log::error('Fallo ReservationUpdatedMail admin', ['msg' => $e->getMessage()]);
                 report($e);
             }
         }
