@@ -5,7 +5,7 @@ use function Pest\Laravel\{actingAs, post};
 
 it('rechaza solapes de [check_in, check_out)', function () {
     $user = User::factory()->create(['role' => 'customer']);
-    $prop = Property::factory()->create();
+    $prop = Property::factory()->create(['capacity' => 4]); // Capacidad suficiente
 
     // Reserva existente 10→13
     $existing = Reservation::factory()->create([
