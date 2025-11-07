@@ -1,14 +1,7 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Política de Cookies
-        </h2>
-    </x-slot>
-
-    <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 prose prose-sm max-w-none">
+    <div class="container" style="max-width: 900px; margin: 0 auto; padding: var(--spacing-xl) 1rem;">
+        <h1 style="font-family: var(--font-serif); font-size: var(--text-3xl); margin-bottom: var(--spacing-lg); color: var(--color-text-primary);">Política de Cookies</h1>
+        <div style="color: var(--color-text-secondary); line-height: 1.7;">
                     <h2>1. ¿QUÉ SON LAS COOKIES?</h2>
                     <p>
                         Las cookies son pequeños archivos de texto que se almacenan en su dispositivo cuando visita un sitio web. Las cookies permiten que el sitio web recuerde sus acciones y preferencias durante un período de tiempo.
@@ -102,8 +95,6 @@
                     <p class="text-sm text-gray-500 mt-8">
                         Última actualización: {{ date('d/m/Y') }}
                     </p>
-                </div>
-            </div>
         </div>
     </div>
 </x-app-layout>

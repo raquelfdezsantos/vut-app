@@ -18,6 +18,40 @@ use Carbon\CarbonPeriod;
 class PropertyController extends Controller
 {
     /**
+     * Muestra la HOME adaptativa según el número de propiedades.
+     * 
+     * - Si hay 1 propiedad: muestra ficha completa
+     * - Si hay 2+: muestra grid de propiedades
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function home()
+    {
+        $totalProperties = Property::whereNull('deleted_at')->count();
+        
+        if ($totalProperties === 0) {
+            abort(404, 'No hay propiedades disponibles');
+        }
+        
+        if ($totalProperties === 1) {
+            // Solo hay 1 propiedad: mostrar ficha completa
+            $property = Property::with(['photos', 'rateCalendar'])
+                ->whereNull('deleted_at')
+                ->firstOrFail();
+            
+            return view('home-single', compact('property', 'totalProperties'));
+        }
+        
+        // Hay múltiples propiedades: mostrar grid
+        $properties = Property::with('photos')
+            ->whereNull('deleted_at')
+            ->latest()
+            ->get();
+        
+        return view('home-multi', compact('properties', 'totalProperties'));
+    }
+    
+    /**
      * Muestra el listado de propiedades disponibles.
      *
      * Obtiene las propiedades junto con sus fotos asociadas,

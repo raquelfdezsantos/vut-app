@@ -14,7 +14,8 @@ class ContactMessageMail extends Mailable implements ShouldQueue {
     public function __construct(array $data){ $this->data = $data; }
 
     public function build(){
-        return $this->subject('Nueva consulta desde la web')
+        $subject = $this->data['subject'] ?? 'Nueva consulta desde la web';
+        return $this->subject($subject)
             ->view('emails.contact')
             ->with(['data' => $this->data]);
     }

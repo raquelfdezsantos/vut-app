@@ -13,6 +13,8 @@ use App\Models\Reservation;
 use App\Models\Invoice;
 use App\Http\Controllers\StripeController;
 use App\Http\Controllers\ContactController;
+use App\Models\Property;
+use App\Http\Controllers\QuoteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,16 +22,48 @@ use App\Http\Controllers\ContactController;
 |--------------------------------------------------------------------------
 */
 
-Route::get('/', fn() => view('welcome'))->name('home');
+Route::get('/', function () {
+    // Home adaptativa: si hay 1 propiedad, mostrar Home single; si hay >1, Home multi
+    $count = Property::count();
+    if ($count === 1) {
+        $property = Property::with('photos')->first();
+        return view('home-single', compact('property'));
+    }
+
+    // Si hay varias, permitimos destacar una por slug conocido si existe; si no, usamos multi
+    $highlightSlug = 'apartamento-nordeste';
+    $highlight = Property::with('photos')->where('slug', $highlightSlug)->first();
+    if ($highlight && $count > 1) {
+        // Podemos seguir mostrando multi igualmente; si en el futuro quieres un hero destacado, lo añadimos
+        $properties = Property::with('photos')->orderBy('id')->get();
+        return view('home-multi', compact('properties'));
+    }
+
+    $properties = Property::with('photos')->orderBy('id')->get();
+    return view('home-multi', compact('properties'));
+})->name('home');
 
 // Propiedades
-Route::get('/properties', [PropertyController::class, 'index'])->name('properties.index');
+Route::get('/propiedades', [PropertyController::class, 'index'])->name('properties.index');
 Route::get('/propiedad/{property:slug}', [PropertyController::class, 'show'])->name('properties.show');
 
+// Contacto (único formulario + mapa)
+Route::get('/contacto', [ContactController::class, 'create'])->name('contact.create');
+Route::post('/contacto', [ContactController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('contact.store');
+Route::get('/contact', fn() => redirect()->route('contact.create'));
+
+// Entorno y Reservar (páginas públicas independientes - placeholders iniciales)
+Route::view('/entorno', 'entorno.index')->name('entorno');
+Route::view('/reservar', 'reservar.index')->name('reservar');
 // Páginas legales
 Route::get('/aviso-legal', fn() => view('legal.aviso-legal'))->name('legal.aviso');
 Route::get('/politica-privacidad', fn() => view('legal.politica-privacidad'))->name('legal.privacidad');
 Route::get('/cookies', fn() => view('legal.cookies'))->name('legal.cookies');
+
+// (Eliminada ruta legacy /reservar -> public.reservar)
+
 
 /*
 |--------------------------------------------------------------------------
@@ -168,20 +202,20 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
         ->name('stripe.cancel');
 });
 
-
 /*
+|
 |--------------------------------------------------------------------------
-| Formulario de contacto
+| (Se eliminó duplicado de formulario de contacto que causaba error de firma)
 |--------------------------------------------------------------------------
 */
 
-Route::get('/contacto', [ContactController::class, 'create'])->name('contact.create');
-// Alias /contact que redirige al mismo formulario (opcional)
-Route::get('/contact', fn() => redirect()->route('contact.create'));
+/*
+|--------------------------------------------------------------------------
+| API
+|--------------------------------------------------------------------------
+*/
+Route::get('/api/quote', [QuoteController::class, 'show'])->name('quote.show');
 
-Route::post('/contact', [ContactController::class, 'store'])
-    ->middleware('throttle:5,1') // máx. 5 envíos por minuto
-    ->name('contact.store');
 
 /*
 |--------------------------------------------------------------------------

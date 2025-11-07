@@ -1,14 +1,7 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Aviso Legal
-        </h2>
-    </x-slot>
-
-    <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 prose prose-sm max-w-none">
+    <div class="container" style="max-width: 900px; margin: 0 auto; padding: var(--spacing-xl) 1rem;">
+        <h1 style="font-family: var(--font-serif); font-size: var(--text-3xl); margin-bottom: var(--spacing-lg); color: var(--color-text-primary);">Aviso Legal</h1>
+        <div style="color: var(--color-text-secondary); line-height: 1.7;">
                     <h2>1. DATOS IDENTIFICATIVOS</h2>
                     <p>
                         En cumplimiento del artículo 10 de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y Comercio Electrónico, se informa que:
@@ -84,8 +77,6 @@
                     <p class="text-sm text-gray-500 mt-8">
                         Última actualización: {{ date('d/m/Y') }}
                     </p>
-                </div>
-            </div>
         </div>
     </div>
 </x-app-layout>

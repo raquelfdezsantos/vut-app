@@ -6,12 +6,15 @@ use App\Http\Requests\ContactRequest;
 use App\Mail\ContactMessageMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
+use App\Models\Property;
 
 class ContactController extends Controller
 {
     public function create()
     {
-        return view('contact.form');
+        // Pasar la primera propiedad disponible para mostrar dirección y coordenadas
+        $property = Property::first();
+        return view('contact.form', compact('property'));
     }
 
     public function store(Request $request)
@@ -19,6 +22,7 @@ class ContactController extends Controller
         $data = $request->validate([
             'name'    => ['required', 'string', 'max:100'],
             'email'   => ['required', 'email', 'max:150'],
+            'subject' => ['required', 'string', 'max:150'],
             'message' => ['required', 'string', 'max:2000'],
         ]);
 
