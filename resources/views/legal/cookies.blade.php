@@ -1,7 +1,11 @@
-<x-app-layout>
-    <div class="container" style="max-width: 900px; margin: 0 auto; padding: var(--spacing-xl) 1rem;">
+@extends('layouts.app')
+
+@section('title','Política de Cookies')
+@section('content')
+<div class="container" style="max-width: 1100px; padding-top: var(--spacing-xl); padding-bottom: var(--spacing-2xl);">
+    <div style="background: var(--color-bg-secondary); border:1px solid var(--color-border-light); border-radius:12px; padding: clamp(1.25rem, 2vw, 2rem);">
         <h1 style="font-family: var(--font-serif); font-size: var(--text-3xl); margin-bottom: var(--spacing-lg); color: var(--color-text-primary);">Política de Cookies</h1>
-        <div style="color: var(--color-text-secondary); line-height: 1.7;">
+        <div style="color: var(--color-text-secondary); line-height: 1.7; font-size: var(--text-sm);">
                     <h2>1. ¿QUÉ SON LAS COOKIES?</h2>
                     <p>
                         Las cookies son pequeños archivos de texto que se almacenan en su dispositivo cuando visita un sitio web. Las cookies permiten que el sitio web recuerde sus acciones y preferencias durante un período de tiempo.
@@ -92,9 +96,8 @@
                         Para más información sobre el tratamiento de datos personales, consulte nuestra <a href="{{ route('legal.privacidad') }}" class="text-indigo-600 hover:text-indigo-800">Política de Privacidad</a>.
                     </p>
 
-                    <p class="text-sm text-gray-500 mt-8">
-                        Última actualización: {{ date('d/m/Y') }}
-                    </p>
+            <p style="margin-top: var(--spacing-xl); font-size: var(--text-xs); color: var(--color-text-muted);">Última actualización: {{ date('d/m/Y') }}</p>
         </div>
     </div>
-</x-app-layout>
+</div>
+@endsection

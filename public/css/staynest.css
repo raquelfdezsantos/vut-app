@@ -510,14 +510,26 @@ a:hover {
     position: absolute;
     top: 0;
     bottom: 0;
-    width: 28px;              /* halo sutil */
+    width: 72px; /* halo más ancho */
     pointer-events: none;
+    z-index: 10; /* por encima de las imágenes para que se perciba el difuminado */
 }
 .sn-home-gallery::before {
-    left: -14px;              /* un pelín fuera del contenedor */
-    background: linear-gradient(90deg, rgba(24,24,24,1) 0%, rgba(24,24,24,0) 100%);
+    left: 0;
+    background: linear-gradient(90deg,
+        rgba(24,24,24,0.55) 0%,
+        rgba(24,24,24,0.38) 35%,
+        rgba(24,24,24,0.18) 60%,
+        rgba(24,24,24,0) 100%);
 }
 .sn-home-gallery::after {
-    right: -14px;
-    background: linear-gradient(270deg, rgba(24,24,24,1) 0%, rgba(24,24,24,0) 100%);
+    right: 0;
+    background: linear-gradient(270deg,
+        rgba(24,24,24,0.55) 0%,
+        rgba(24,24,24,0.38) 35%,
+        rgba(24,24,24,0.18) 60%,
+        rgba(24,24,24,0) 100%);
 }
+
+/* Capas: dejamos las imágenes por debajo del halo, pero los halos no interceptan clics */
+.sn-home-gallery a img { position: relative; z-index: 1; }

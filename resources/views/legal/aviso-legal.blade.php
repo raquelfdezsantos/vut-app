@@ -1,7 +1,11 @@
-<x-app-layout>
-    <div class="container" style="max-width: 900px; margin: 0 auto; padding: var(--spacing-xl) 1rem;">
+@extends('layouts.app')
+
+@section('title','Aviso Legal')
+@section('content')
+<div class="container" style="max-width: 1100px; padding-top: var(--spacing-xl); padding-bottom: var(--spacing-2xl);">
+    <div style="background: var(--color-bg-secondary); border:1px solid var(--color-border-light); border-radius:12px; padding: clamp(1.25rem, 2vw, 2rem);">
         <h1 style="font-family: var(--font-serif); font-size: var(--text-3xl); margin-bottom: var(--spacing-lg); color: var(--color-text-primary);">Aviso Legal</h1>
-        <div style="color: var(--color-text-secondary); line-height: 1.7;">
+        <div style="color: var(--color-text-secondary); line-height: 1.7; font-size: var(--text-sm);">
                     <h2>1. DATOS IDENTIFICATIVOS</h2>
                     <p>
                         En cumplimiento del artículo 10 de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y Comercio Electrónico, se informa que:
@@ -74,9 +78,8 @@
                         El presente aviso legal se rige por la legislación española vigente.
                     </p>
 
-                    <p class="text-sm text-gray-500 mt-8">
-                        Última actualización: {{ date('d/m/Y') }}
-                    </p>
+            <p style="margin-top: var(--spacing-xl); font-size: var(--text-xs); color: var(--color-text-muted);">Última actualización: {{ date('d/m/Y') }}</p>
         </div>
     </div>
-</x-app-layout>
+</div>
+@endsection
