@@ -8,10 +8,9 @@
 
     <title>{{ config('app.name', 'Staynest') }}</title>
 
-    <!-- Fuentes (Source Serif 4 + Inter) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+    <!-- Preload fuentes locales (Source Serif 4 variable normal e italic) -->
+    <link rel="preload" href="/fonts/Source_Serif_4/SourceSerif4-VariableFont_opsz,wght.ttf" as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="/fonts/Source_Serif_4/SourceSerif4-Italic-VariableFont_opsz,wght.ttf" as="font" type="font/ttf" crossorigin>
 
     <!-- Staynest Styles -->
     <link rel="stylesheet" href="{{ asset('css/staynest.css') }}">
