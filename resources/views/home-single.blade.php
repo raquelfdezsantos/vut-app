@@ -56,8 +56,8 @@
 </section>
 @endif
 
-    {{-- Descripción --}}
-    <article style="max-width: 720px; color:#ddd; line-height:1.7;">
+  {{-- Descripción --}}
+  <article style="max-width: 720px; color: var(--color-text-secondary); line-height:1.7;">
         {!! nl2br(e($property->description ?? 'Alojamiento acogedor y minimalista.')) !!}
     </article>
 </div>

@@ -60,8 +60,9 @@
     --color-text-muted: #666666;        /* Texto apagado */
     
     /* Acento verde azulado (identidad Staynest) */
-    --color-accent: #265B61;            /* Verde azulado profundo */
-    --color-accent-hover: #0B4A50;      /* Verde azulado hover (más claro) */
+    --color-accent: #4D8D94;            /* Teal equilibrado */
+    --color-accent-hover: #5FAAB1;      /* Hover más visible en dark */
+    --color-accent-active: #3E7E85;     /* Activo ligeramente más oscuro */
     
     /* Elementos de interfaz */
     --color-border: #E0E0E0;            /* Bordes y separadores */
@@ -110,20 +111,22 @@
    VARIABLES CSS - MODO CLARO
    ============================================================================ */
 [data-theme="light"] {
-    --color-bg-primary: #F7F7F7;
-    --color-bg-secondary: #E5E5E5;
-    --color-bg-card: #E5E5E5;
+    /* Light más confortable (menos blanco para reducir fatiga visual) */
+    --color-bg-primary: #E6E6E6;
+    --color-bg-secondary: #D1D1D1;
+    --color-bg-card: #E3E3E3;
     
     --color-text-primary: #000000;
-    --color-text-secondary: #666666;
-    --color-text-muted: #999999;
+    --color-text-secondary: #333333;
+    --color-text-muted: #4b4b4b;
     
-    /* Acento se mantiene igual */
-    --color-accent: #265B61;
-    --color-accent-hover: #0B4A50;
+    /* Acento: mismo tono de marca/tinta que en dark */
+    --color-accent: #4D8D94;
+    --color-accent-hover: #5FAAB1;
+    --color-accent-active: #3E7E85;
     
     --color-border: #E0E0E0;
-    --color-border-light: #F0F0F0;
+    --color-border-light: #BABABA;
     
     /* Sombras más visibles en modo claro */
     --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
@@ -194,6 +197,21 @@ a {
 a:hover {
     color: var(--color-accent-hover);
 }
+
+/* ============================================================================
+   AJUSTES ESPECÍFICOS MODO CLARO (legibilidad)
+   ============================================================================ */
+/* Headings demasiado claros en light: usar colores de texto del tema */
+html[data-theme="light"] h2 { color: var(--color-text-primary); }
+html[data-theme="light"] h3 { color: var(--color-text-secondary); }
+
+/* Reservar: alinear fondos/bordes de formulario y resumen con el footer en light */
+html[data-theme="light"] .sn-reservar .bg-neutral-800 { background-color: var(--color-bg-secondary) !important; }
+html[data-theme="light"] .sn-reservar .border-neutral-700 { border-color: var(--color-border-light) !important; }
+/* Texto dentro de Reservar en light para mejorar contraste */
+html[data-theme="light"] .sn-reservar .text-neutral-100 { color: var(--color-text-primary) !important; }
+html[data-theme="light"] .sn-reservar .text-neutral-300 { color: var(--color-text-secondary) !important; }
+html[data-theme="light"] .sn-reservar .text-neutral-400 { color: var(--color-text-muted) !important; }
 
 /* Enlaces dentro de contenido legal: usar acento y negrita para legibilidad */
 .sn-legal a {
@@ -283,7 +301,8 @@ a:hover {
 
 .nav-link:hover {
     color: var(--color-accent);
-    background-color: rgba(9, 56, 61, 0.1);
+    /* Fondo hover sutil basado en el nuevo acento (#4D8D94) */
+    background-color: rgba(77, 141, 148, 0.12);
 }
 
 .nav-link.active::after {
