@@ -60,9 +60,9 @@
     <!-- Footer -->
     <footer
         style="background-color: var(--color-bg-secondary); border-top: 1px solid var(--color-border-light); margin-top: var(--spacing-2xl);">
-        <div class="container" style="padding-top: var(--spacing-xl); padding-bottom: var(--spacing-xl);">
+        <div class="container" style="padding-top: var(--spacing-md); padding-bottom: var(--spacing-md);">
             <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--spacing-xl); font-size: var(--text-sm); color: var(--color-text-secondary);">
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--spacing-md); font-size: var(--text-sm); color: var(--color-text-secondary); align-items: start;">
                 {{-- Columna 1: Licencias --}}
                 <div>
                     <h3
@@ -125,17 +125,23 @@
 
             {{-- Crédito desarrolladora --}}
             <div
-                style="margin-top: var(--spacing-xl); padding-top: var(--spacing-md); border-top: 1px solid var(--color-border-light); text-align: center;">
+                style="margin-top: var(--spacing-md); padding-top: var(--spacing-sm); border-top: 1px solid var(--color-border-light); text-align: center;">
                 <p style="font-size: var(--text-xs); color: var(--color-text-muted);">
                     Desarrollado por <span style="font-weight: 500; color: var(--color-text-secondary);">Raquel
                         Fernández Santos</span> ·
                     <span style="font-weight: 600; color: var(--color-accent);">{{ config('app.name') }}</span>
                 </p>
-                <p style="font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--spacing-sm);">
-                    🍪 Este sitio utiliza cookies técnicas necesarias para su funcionamiento.
+                <p style="font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--spacing-sm); display:flex; align-items:center; gap:8px; justify-content:center;">
+                    <x-icon name="cookie" :size="16" class="footer-cookie-icon" />
+                    <span>Este sitio utiliza cookies técnicas necesarias para su funcionamiento.</span>
                     <a href="{{ route('legal.cookies') }}"
                         style="text-decoration: underline; color: var(--color-text-muted);">Más información</a>
                 </p>
+                <style>
+                    /* Cookie: blanco en dark, negro puro en light */
+                    html[data-theme="dark"] .footer-cookie-icon { color: #ffffff; }
+                    html[data-theme="light"] .footer-cookie-icon { color: #000000; }
+                </style>
             </div>
         </div>
     </footer>

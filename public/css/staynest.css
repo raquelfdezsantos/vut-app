@@ -110,9 +110,9 @@
    VARIABLES CSS - MODO CLARO
    ============================================================================ */
 [data-theme="light"] {
-    --color-bg-primary: #FFFFFF;
-    --color-bg-secondary: #F7F7F7;
-    --color-bg-card: #FFFFFF;
+    --color-bg-primary: #F7F7F7;
+    --color-bg-secondary: #E5E5E5;
+    --color-bg-card: #E5E5E5;
     
     --color-text-primary: #000000;
     --color-text-secondary: #666666;
