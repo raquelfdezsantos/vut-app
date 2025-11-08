@@ -8,9 +8,21 @@
 
     <title>{{ config('app.name', 'Staynest') }}</title>
 
-    <!-- Preload fuentes locales (Source Serif 4 variable normal e italic) -->
-    <link rel="preload" href="/fonts/Source_Serif_4/SourceSerif4-VariableFont_opsz,wght.ttf" as="font" type="font/ttf" crossorigin>
-    <link rel="preload" href="/fonts/Source_Serif_4/SourceSerif4-Italic-VariableFont_opsz,wght.ttf" as="font" type="font/ttf" crossorigin>
+    <!-- Preload fuentes locales optimizadas (WOFF2) -->
+    <link rel="preload" href="/fonts/Source_Serif_4/SourceSerif4-VariableFont_opsz,wght.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/Source_Serif_4/SourceSerif4-Italic-VariableFont_opsz,wght.woff2" as="font" type="font/woff2" crossorigin>
+
+    <!-- Evitar FOUC del tema: aplicar tema almacenado antes de cargar CSS -->
+    <script>
+        (function() {
+            try {
+                var t = localStorage.getItem('sn-theme');
+                if (t === 'light' || t === 'dark') {
+                    document.documentElement.setAttribute('data-theme', t);
+                }
+            } catch (e) { /* noop */ }
+        })();
+    </script>
 
     <!-- Staynest Styles -->
     <link rel="stylesheet" href="{{ asset('css/staynest.css') }}">

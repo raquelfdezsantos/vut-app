@@ -59,6 +59,11 @@
             </li>
         </ul>
         
+        {{-- Toggle tema claro/oscuro --}}
+        <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar tema" title="Cambiar tema">
+            <span class="theme-toggle__icon" aria-hidden="true">🌓</span>
+        </button>
+
         {{-- Botón menú hamburguesa (móvil) --}}
         <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-label="Menú">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,11 +91,36 @@
         width: 24px;
         height: 24px;
     }
+
+    /* Botón toggle de tema */
+    .theme-toggle {
+        background: none;
+        border: 1px solid var(--color-border-light);
+        color: var(--color-text-primary);
+        cursor: pointer;
+        padding: var(--spacing-sm);
+        border-radius: 6px;
+        margin-left: var(--spacing-md);
+    }
+    .theme-toggle:hover {
+        border-color: var(--color-accent);
+        color: var(--color-accent);
+    }
     
     @media (max-width: 768px) {
-        .nav-menu {
-            display: none;
-            /* TODO: Implementar menú desplegable móvil */
+        .nav-menu { display: none; }
+        .nav-menu.is-open {
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            right: var(--spacing-xl);
+            top: 68px;
+            gap: var(--spacing-sm);
+            background-color: var(--color-bg-primary);
+            border: 1px solid var(--color-border-light);
+            padding: var(--spacing-md);
+            border-radius: 8px;
+            z-index: 1100;
         }
         
         .mobile-menu-toggle {
