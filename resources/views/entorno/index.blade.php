@@ -59,7 +59,7 @@
     <section class="mt-20 text-center">
         <div class="inline-block bg-neutral-800 border border-neutral-700 rounded-lg px-8 py-6">
             <p class="text-neutral-200 mb-4">Pronto podrás explorar un mapa interactivo, ver eventos en tiempo real y planificar tu estancia de forma personalizada.</p>
-            <a href="{{ route('reservar') }}" class="inline-block bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-5 py-2 rounded transition">Reservar ahora</a>
+            <a href="{{ route('reservar') }}" class="inline-flex items-center px-5 py-2 rounded bg-[color:var(--color-accent)] text-white font-medium transition ease-in-out duration-150 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-accent)] focus:ring-offset-2 entorno-cta">Reservar ahora</a>
         </div>
     </section>
 </div>

@@ -4,12 +4,12 @@
   <nav class="nav-container">
     <x-logo />
     <ul class="nav-menu">
-      <li><a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}">Inicio</a></li>
-      <li><a href="{{ route('entorno') }}" class="nav-link {{ request()->routeIs('entorno') ? 'active' : '' }}">Entorno</a></li>
-      <li><a href="{{ route('contact.create') }}" class="nav-link {{ request()->routeIs('contact.*') ? 'active' : '' }}">Contacto</a></li>
-      <li><a href="{{ route('reservar') }}" class="nav-link {{ request()->routeIs('reservar') ? 'active' : '' }}">Reservar</a></li>
+  <li><a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}">Inicio</a></li>
+  <li><a href="{{ route('entorno') }}" class="nav-link {{ request()->routeIs('entorno') ? 'active' : '' }}">Entorno</a></li>
+  <li><a href="{{ route('contact.create') }}" class="nav-link {{ request()->routeIs('contact.*') ? 'active' : '' }}">Contacto</a></li>
+  <li><a href="{{ route('reservar') }}" class="nav-link {{ request()->routeIs('reservar') ? 'active' : '' }}">Reservar</a></li>
       @if($totalProperties > 1)
-        <li><a href="{{ route('properties.index') }}" class="nav-link {{ request()->routeIs('properties.index') ? 'active' : '' }}">Propiedades</a></li>
+  <li><a href="{{ route('properties.index') }}" class="nav-link {{ request()->routeIs('properties.index') ? 'active' : '' }}">Propiedades</a></li>
       @endif
       @auth
         @if(auth()->user()->role === 'admin')
@@ -19,7 +19,7 @@
         @endif
       @endauth
       @guest
-        <li><a href="{{ route('login') }}" class="nav-link {{ request()->routeIs('login') ? 'active' : '' }}">Login</a></li>
+  <li><a href="{{ route('login') }}" class="nav-link {{ request()->routeIs('login') ? 'active' : '' }}">Login</a></li>
       @endguest
     </ul>
     <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-label="Menú">
@@ -34,6 +34,7 @@
 <div class="nav-spacer" style="height:80px;"></div>
 <style>
   .nav-header{position:fixed;top:0;left:0;right:0;width:100%;z-index:1200;background:var(--color-bg-primary);border-bottom:1px solid var(--color-border-light);} 
+  .nav-container{position:relative;padding-right:calc(var(--spacing-xl) + 56px);} /* deja espacio para el toggle */
   .mobile-menu-toggle{display:none;background:none;border:none;color:var(--color-text-primary);cursor:pointer;padding:var(--spacing-sm);} 
   .mobile-menu-toggle svg{width:24px;height:24px;} 
   .theme-toggle{background:none;border:1px solid var(--color-border-light);color:var(--color-text-primary);cursor:pointer;width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-left:0;} 
@@ -48,5 +49,10 @@
     .nav-menu{display:none;}
     .nav-menu.is-open{display:flex;flex-direction:column;position:absolute;right:var(--spacing-xl);top:68px;gap:var(--spacing-sm);background-color:var(--color-bg-primary);border:1px solid var(--color-border-light);padding:var(--spacing-md);border-radius:8px;z-index:1100;}
     .mobile-menu-toggle{display:block;}
+    .theme-toggle--corner{right:calc(var(--spacing-xl) + 44px);} /* evita solape con hamburguesa */
+    .nav-container{padding-right:calc(var(--spacing-xl) + 88px);} /* más espacio en móvil */
+  }
+  @media (min-width:1024px){
+    .nav-container{padding-right:calc(var(--spacing-xl) + 72px);} /* evita solape con Login en responsive pc */
   }
 </style>

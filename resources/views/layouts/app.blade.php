@@ -24,8 +24,8 @@
         })();
     </script>
 
-    <!-- Staynest Styles -->
-    <link rel="stylesheet" href="{{ asset('css/staynest.css') }}">
+    <!-- Staynest Styles (cache-busting con filemtime) -->
+    <link rel="stylesheet" href="{{ asset('css/staynest.css') }}?v={{ filemtime(public_path('css/staynest.css')) }}">
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -61,10 +61,10 @@
     <footer
         style="background-color: var(--color-bg-secondary); border-top: 1px solid var(--color-border-light); margin-top: var(--spacing-2xl);">
         <div class="container" style="padding-top: var(--spacing-md); padding-bottom: var(--spacing-md);">
-            <div
+            <div class="footer-grid"
                 style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--spacing-md); font-size: var(--text-sm); color: var(--color-text-secondary); align-items: start;">
                 {{-- Columna 1: Licencias --}}
-                <div>
+                <div class="footer-col-1">
                     <h3
                         style="font-family: var(--font-serif); font-size: var(--text-lg); color: var(--color-text-primary); margin-bottom: var(--spacing-md);">
                         Información Legal</h3>
@@ -89,36 +89,28 @@
                 </div>
 
                 {{-- Columna 2: Enlaces legales --}}
-                <div>
+                <div class="footer-col-2">
                     <h3
                         style="font-family: var(--font-serif); font-size: var(--text-lg); color: var(--color-text-primary); margin-bottom: var(--spacing-md);">
                         Legal</h3>
                     <ul style="list-style: none; padding: 0;">
-                        <li style="margin-bottom: var(--spacing-xs);"><a href="{{ route('legal.aviso') }}"
-                                style="color: var(--color-text-secondary); transition: color var(--transition-fast);"
-                                onmouseover="this.style.color='var(--color-accent)'"
-                                onmouseout="this.style.color='var(--color-text-secondary)'">Aviso Legal</a></li>
-                        <li style="margin-bottom: var(--spacing-xs);"><a href="{{ route('legal.privacidad') }}"
-                                style="color: var(--color-text-secondary); transition: color var(--transition-fast);"
-                                onmouseover="this.style.color='var(--color-accent)'"
-                                onmouseout="this.style.color='var(--color-text-secondary)'">Política de Privacidad</a>
-                        </li>
-                        <li><a href="{{ route('legal.cookies') }}"
-                                style="color: var(--color-text-secondary); transition: color var(--transition-fast);"
-                                onmouseover="this.style.color='var(--color-accent)'"
-                                onmouseout="this.style.color='var(--color-text-secondary)'">Política de Cookies</a></li>
+            <li style="margin-bottom: var(--spacing-xs);"><a href="{{ route('legal.aviso') }}" class="sn-link">Aviso Legal</a></li>
+            <li style="margin-bottom: var(--spacing-xs);"><a href="{{ route('legal.privacidad') }}" class="sn-link">Política de Privacidad</a></li>
+            <li><a href="{{ route('legal.cookies') }}" class="sn-link">Política de Cookies</a></li>
                     </ul>
                 </div>
 
                 {{-- Columna 3: Propiedad --}}
-                <div>
+                <div class="footer-col-3">
                     @if($property)
-                        <h3
-                            style="font-family: var(--font-serif); font-size: var(--text-lg); color: var(--color-text-primary); margin-bottom: var(--spacing-md);">
-                            {{ $property->name }}
-                        </h3>
-                        <p style="color: var(--color-text-secondary);">&copy; {{ date('Y') }} Todos los derechos reservados.
-                        </p>
+                        <div class="footer-prop">
+                            <h3
+                                style="font-family: var(--font-serif); font-size: var(--text-lg); color: var(--color-text-primary); margin-bottom: var(--spacing-md);">
+                                {{ $property->name }}
+                            </h3>
+                            <p style="color: var(--color-text-secondary);">&copy; {{ date('Y') }} Todos los derechos reservados.
+                            </p>
+                        </div>
                     @endif
                 </div>
             </div>
@@ -131,16 +123,29 @@
                         Fernández Santos</span> ·
                     <span style="font-weight: 600; color: var(--color-accent);">{{ config('app.name') }}</span>
                 </p>
-                <p style="font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--spacing-sm); display:flex; align-items:center; gap:8px; justify-content:center;">
+                <p class="footer-cookie-row" style="font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--spacing-sm); display:flex; align-items:center; gap:8px; justify-content:center;">
                     <x-icon name="cookie" :size="16" class="footer-cookie-icon" />
                     <span>Este sitio utiliza cookies técnicas necesarias para su funcionamiento.</span>
-                    <a href="{{ route('legal.cookies') }}"
-                        style="text-decoration: underline; color: var(--color-text-muted);">Más información</a>
+                    <a href="{{ route('legal.cookies') }}" class="sn-link" style="font-size: var(--text-xs);">Más información</a>
                 </p>
                 <style>
                     /* Cookie: blanco en dark, negro puro en light */
                     html[data-theme="dark"] .footer-cookie-icon { color: #ffffff; }
                     html[data-theme="light"] .footer-cookie-icon { color: #000000; }
+                    /* Alineación columnas footer en desktop */
+                    @media (min-width: 768px) {
+                        .footer-col-1 { text-align: left; }
+                        .footer-col-2 { text-align: left; }
+                        .footer-col-2 ul { display: block; }
+                        .footer-col-3 { text-align: right; }
+                        .footer-col-3 .footer-prop { display: inline-block; text-align: left; }
+                    }
+                    @media (min-width: 1024px) {
+                        .footer-grid { grid-template-columns: 1fr 1fr 1fr !important; }
+                    }
+                    @media (max-width: 640px) {
+                        .footer-cookie-row { flex-direction: column; gap: 4px; text-align: center; }
+                    }
                 </style>
             </div>
         </div>
