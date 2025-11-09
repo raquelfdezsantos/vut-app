@@ -59,6 +59,9 @@ class InitialDataSeeder extends Seeder
                 'capacity' => 4,
                 'tourism_license' => 'VT-28-0001234',
                 'rental_registration' => 'ATR-28-001234-2024',
+                // Coordenadas reales
+                'latitude' => 43.539224869901915,
+                'longitude' => -5.668796802952115,
             ]
         );
 

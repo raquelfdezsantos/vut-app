@@ -42,7 +42,10 @@ return [
 
     'google_maps' => [
         'api_key' => env('GOOGLE_MAPS_API_KEY'),
-        'map_id'  => env('GOOGLE_MAPS_MAP_ID', null),
+        // Map IDs: puedes definir uno por defecto y opcionalmente uno claro/oscuro
+        'map_id'        => env('GOOGLE_MAPS_MAP_ID', null),
+        'map_id_light'  => env('GOOGLE_MAPS_MAP_ID_LIGHT', null),
+        'map_id_dark'   => env('GOOGLE_MAPS_MAP_ID_DARK', null),
     ],
 
 ];

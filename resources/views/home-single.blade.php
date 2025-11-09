@@ -56,10 +56,27 @@
 </section>
 @endif
 
+  @if($property && ($property->tourism_license || $property->rental_registration))
+  <section style="margin: var(--spacing-md) auto var(--spacing-xl); max-width:1200px; background: var(--color-bg-secondary); border:1px solid var(--color-accent); border-radius: var(--radius-base); padding: .95rem 1.25rem; display:grid; grid-template-columns:1fr 1fr; gap:2rem; align-items:start;">
+    <div style="display:flex; flex-direction:column; gap:4px; font-size:.85rem;">
+      <span style="font-weight:600; color: var(--color-text-primary);">Información legal</span>
+      @if($property->tourism_license)
+      <span style="color: var(--color-text-secondary);">Asturias - Número de registro autonómico<br><strong style="color: var(--color-text-primary); font-weight:600;">{{ $property->tourism_license }}</strong></span>
+      @endif
+    </div>
+    <div style="display:flex; flex-direction:column; gap:4px; font-size:.85rem; text-align:right;">
+      <span style="font-weight:600; color: var(--color-text-primary); visibility:hidden;">Datos del registro</span>
+      @if($property->rental_registration)
+      <span style="color: var(--color-text-secondary);">España - Número de registro nacional<br><strong style="color: var(--color-text-primary); font-weight:600;">{{ $property->rental_registration }}</strong></span>
+      @endif
+    </div>
+  </section>
+  @endif
+
   {{-- Descripción --}}
   <article style="max-width: 720px; color: var(--color-text-secondary); line-height:1.7;">
-        {!! nl2br(e($property->description ?? 'Alojamiento acogedor y minimalista.')) !!}
-    </article>
+    {!! nl2br(e($property->description ?? 'Alojamiento acogedor y minimalista.')) !!}
+  </article>
 </div>
 @endsection
 

@@ -137,6 +137,9 @@
     --transition-fast: 150ms ease-in-out;
     --transition-base: 300ms ease-in-out;
     --transition-slow: 500ms ease-in-out;
+     /* Radio estándar para elementos interactivos y contenedores
+         (igual que la galería: 2px) */
+     --radius-base: 2px;
 }
 
 /* ============================================================================
@@ -241,6 +244,9 @@ h3 {
     font-size: 0.9rem;
     margin-top: var(--spacing-lg);
 }
+/* Radio unificado */
+input, select, textarea, .sn-input, .entorno-cta, button, .footer-grid section, .footer-prop, .sn-thumb-item, .sn-main-wrapper,
+.sn-home-gallery, .sn-reservar form, .sn-auth form { border-radius: var(--radius-base) !important; }
 
 h4 {
     font-size: var(--text-xl);

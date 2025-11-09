@@ -64,7 +64,7 @@
 
         <!-- Resumen -->
         <aside class="space-y-4">
-            <div class="bg-neutral-800 border border-neutral-700 rounded-lg p-4">
+            <div class="bg-neutral-800 border border-neutral-700 p-4" style="border-radius:var(--radius-base);">
                 <h3 class="font-semibold mb-2">Resumen</h3>
                 <ul class="text-sm text-neutral-300 space-y-1">
                     <li>Fechas: <span class="text-neutral-400">—</span></li>
