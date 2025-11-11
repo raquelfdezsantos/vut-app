@@ -39,9 +39,12 @@
         <span class="icon-sun-wrapper"><x-icon name="sun" :size="18" /></span>
         <span class="icon-moon-wrapper"><x-icon name="moon" :size="18" /></span>
     </button>
-</header>
-<div class="nav-spacer" style="height:80px;"></div>
+ </header>
+ <div class="nav-spacer"></div>
 <style>
+    /* Usamos padding-top en body como estrategia principal; spacer queda en 0 como fallback */
+    .nav-spacer { height: 0; }
+    body.sn-has-fixed-header { padding-top: var(--sn-header-h, 0px); }
     .nav-header {
         position: fixed;
         top: 0;
@@ -177,3 +180,52 @@
         /* evita solape con Login en responsive pc */
     }
 </style>
+<script>
+    (function(){
+        function setNavSpacerHeight(){
+            try {
+                var header = document.querySelector('.nav-header');
+                var spacer = document.querySelector('.nav-spacer');
+                if(!header || !spacer) return;
+
+                var headerRect = header.getBoundingClientRect();
+                var maxHeight = headerRect.height;
+
+                // Incluir elementos posicionados absolutamente dentro del header (p.ej., theme toggle)
+                var absEls = header.querySelectorAll('.theme-toggle--corner, .mobile-menu-toggle');
+                absEls.forEach(function(el){
+                    var r = el.getBoundingClientRect();
+                    var bottomWithinHeader = r.bottom - headerRect.top; // cuánto "baja" dentro del header
+                    if (bottomWithinHeader > maxHeight) maxHeight = bottomWithinHeader;
+                });
+
+                // Pequeño margen de seguridad por antialiasing/zoom
+                var h = Math.ceil(maxHeight) + 6;
+                // Estrategia principal: desplazar todo el contenido con padding-top del body
+                document.body.classList.add('sn-has-fixed-header');
+                document.documentElement.style.setProperty('--sn-header-h', h + 'px');
+                // Fallback: mantener el spacer, pero sin ocupar espacio adicional
+                spacer.style.height = '0px';
+            } catch(e) {}
+        }
+
+        // Recalcular en eventos clave
+        window.addEventListener('load', function(){
+            setNavSpacerHeight();
+            // Tras carga de fuentes, puede variar la altura
+            setTimeout(setNavSpacerHeight, 150);
+            setTimeout(setNavSpacerHeight, 400);
+        });
+        window.addEventListener('resize', function(){
+            window.requestAnimationFrame(setNavSpacerHeight);
+        });
+        window.addEventListener('orientationchange', setNavSpacerHeight);
+
+        // Observar cambios en el header que puedan afectar a su altura (ej. clases, contenido)
+        var headerNode = document.querySelector('.nav-header');
+        if (headerNode && 'MutationObserver' in window) {
+            var mo = new MutationObserver(function(){ setNavSpacerHeight(); });
+            mo.observe(headerNode, { attributes:true, childList:true, subtree:true });
+        }
+    })();
+    </script>

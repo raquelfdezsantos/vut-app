@@ -55,7 +55,7 @@
     @endif
 
     <!-- Page Content -->
-    <main class="{{ ($compactMain ?? false) ? '' : 'container mt-xl' }}">
+    <main class="{{ ($compactMain ?? false) ? '' : 'container mt-xl' }}" style="min-height:calc(100vh - 340px);display:block;">
         {{-- Soporte para uso como componente (<x-app-layout>) y como layout con @section --}}
             {{ $slot ?? '' }}
             @yield('content')
@@ -66,7 +66,7 @@
         style="background-color: var(--color-bg-secondary); border-top: 1px solid var(--color-border-light); margin-top: var(--spacing-2xl);">
         <div class="container" style="padding-top: var(--spacing-md); padding-bottom: var(--spacing-md);">
             <div class="footer-grid"
-                style="display: grid; grid-template-columns: 1fr minmax(260px,320px) 1fr; gap: var(--spacing-md); font-size: var(--text-sm); color: var(--color-text-secondary); align-items: start;">
+                style="display: grid; gap: var(--spacing-md); font-size: var(--text-sm); color: var(--color-text-secondary); align-items: start;">
                 {{-- Columna 1: Licencias --}}
                 <div class="footer-col-1">
                     <h3
@@ -139,6 +139,29 @@
                         información</a>
                 </p>
                 <style>
+                    /* Layout base flexible para empujar footer al fondo si contenido es corto */
+                    html, body { height:100%; }
+                    body { display:flex; flex-direction:column; }
+                    main { flex:1 0 auto; }
+                    footer { flex-shrink:0; }
+                    /* Grid responsive para footer: móvil stack, tablet 2 col, desktop 3 col centrada */
+                    .footer-grid { display:grid; }
+                    @media (max-width: 639px) {
+                        .footer-grid { grid-template-columns: 1fr; }
+                        .footer-col-1, .footer-col-2, .footer-col-3 { text-align:center !important; }
+                        .footer-col-2 { margin-inline:auto; }
+                        .footer-col-3 .footer-prop { text-align:center !important; }
+                    }
+                    @media (min-width:640px) and (max-width:899px) {
+                        .footer-grid { grid-template-columns: 1fr 1fr; }
+                        .footer-col-3 { grid-column:1 / -1; text-align:center; margin-top:var(--spacing-md); }
+                        .footer-col-3 .footer-prop { text-align:center; }
+                    }
+                    @media (min-width:900px) {
+                        .footer-grid { grid-template-columns: 1fr minmax(240px,320px) 1fr; }
+                        /* Reset del comportamiento tablet para que la col 3 no baje de fila */
+                        .footer-col-3 { grid-column: auto; text-align: right; margin-top: 0; }
+                    }
                     /* Cookie: blanco en dark, negro puro en light */
                     html[data-theme="dark"] .footer-cookie-icon {
                         color: #ffffff;
@@ -182,20 +205,8 @@
                         }
                     }
 
-                    @media (min-width: 1024px) {
-
-                        /* Centrar columna Legal con ancho controlado */
-                        .footer-grid {
-                            grid-template-columns: 1fr minmax(260px, 320px) 1fr !important;
-                        }
-
-                        .footer-col-2 {
-                            margin-inline: auto;
-                        }
-
-                        .footer-col-2 {
-                            padding: 0;
-                        }
+                    @media (min-width:1024px) {
+                        .footer-col-2 { margin-inline:auto; padding:0; }
                     }
 
                     @media (max-width: 640px) {
