@@ -3,7 +3,7 @@
 @section('title', 'Entorno')
 
 @section('content')
-<div class="max-w-6xl mx-auto px-4 py-10">
+<div class="sn-reservar max-w-5xl mx-auto px-4 py-10">
     <header class="mb-10 text-center">
         <h1 class="text-4xl font-serif mb-4">El Entorno</h1>
         <p class="text-neutral-300 max-w-2xl mx-auto">Descubre el contexto que rodea nuestras propiedades: naturaleza, cultura, actividades y servicios cercanos. Esta página mostrará módulos dinámicos más adelante.</p>
