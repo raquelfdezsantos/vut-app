@@ -727,9 +727,19 @@ html[data-theme="dark"] .sn-auth input[type="checkbox"]:focus {
     /* necesario para pseudo-elementos */
 }
 
+/* la galería ocupa todo el ancho del container principal */
+.sn-home-gallery-wide {
+  width: 100%;
+}
+
+/* fija la columna de miniaturas y deja que la principal crezca */
+:root{
+  --sn-thumbs-col: 380px; 
+}
+
 .sn-gallery-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: 1fr var(--sn-thumbs-col);
     gap: 6px;
     /* más pegadas entre sí */
 }
@@ -859,4 +869,10 @@ html[data-theme="dark"] .sn-auth input[type="checkbox"]:focus {
 .sn-home-gallery a img {
     position: relative;
     z-index: 1;
+}
+
+/* mantiene el texto al ancho “Entorno” (~máx. 960 px) */
+.sn-reading {
+  max-width: 960px;       
+  margin-inline: auto;
 }

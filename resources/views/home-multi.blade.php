@@ -3,10 +3,10 @@
 @section('title', 'Staynest – Alojamientos')
 
 @section('content')
-    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 1.5rem;">
-        <h1 class="font-dmserif" style="font-size: 2rem; line-height: 1.2; margin: 1rem 0 1.25rem 0;">
-            Alojamientos
-        </h1>
+    <div class="sn-reservar max-w-5xl mx-auto px-4 py-10">
+        <header class="mb-10 text-center">
+            <h1 class="text-4xl font-serif mb-4">Alojamientos</h1>
+        </header>
 
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap: 18px;">
             @foreach($properties as $p)

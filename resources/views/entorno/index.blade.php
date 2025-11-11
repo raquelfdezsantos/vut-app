@@ -5,7 +5,7 @@
 @section('content')
 <div class="sn-reservar max-w-5xl mx-auto px-4 py-10">
     <header class="mb-10 text-center">
-        <h1 class="text-4xl font-serif mb-4">El Entorno</h1>
+        <h1 class="text-4xl font-serif mb-4">El entorno</h1>
         <p class="text-neutral-300 max-w-2xl mx-auto">Descubre el contexto que rodea nuestras propiedades: naturaleza, cultura, actividades y servicios cercanos. Esta página mostrará módulos dinámicos más adelante.</p>
     </header>
 
@@ -57,7 +57,7 @@
 
     <!-- CTA futura -->
     <section class="mt-20 text-center">
-        <div class="inline-block bg-neutral-800 border border-neutral-700 px-8 py-6" style="border-radius:var(--radius-base);">
+        <div class="bg-neutral-800 border border-neutral-700 px-4 py-6 w-full" style="border-radius:var(--radius-base); display:block; width:100%;">
             <p class="text-neutral-200 mb-4">Pronto podrás explorar un mapa interactivo, ver eventos en tiempo real y planificar tu estancia de forma personalizada.</p>
             <a href="{{ route('reservar') }}" class="inline-flex items-center px-5 py-2 rounded bg-[color:var(--color-accent)] text-white font-medium transition ease-in-out duration-150 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-accent)] focus:ring-offset-2 entorno-cta">Reservar ahora</a>
         </div>
