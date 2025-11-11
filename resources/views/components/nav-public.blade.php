@@ -51,7 +51,7 @@
         left: 0;
         right: 0;
         width: 100%;
-        z-index: 1200;
+        z-index: 99999; /* super alto para sobrevolar mapas y overlays */
         background: var(--color-bg-primary);
         border-bottom: 1px solid var(--color-border-light);
     }
@@ -70,6 +70,7 @@
         color: var(--color-text-primary);
         cursor: pointer;
         padding: var(--spacing-sm);
+        z-index: 100000; /* asegurar visibilidad sobre contenido */
     }
 
     .mobile-menu-toggle svg {
@@ -97,6 +98,7 @@
         top: 50%;
         right: var(--spacing-xl);
         transform: translateY(-50%);
+        z-index: 100000; /* asegurar visibilidad sobre contenido */
     }
 
     .theme-toggle .icon-sun-wrapper,
@@ -147,7 +149,7 @@
             border: 1px solid var(--color-border-light);
             padding: var(--spacing-md);
             border-radius: 8px;
-            z-index: 1100;
+            z-index: 99990; /* por encima del contenido y justo por debajo de los toggles */
         }
 
         .mobile-menu-toggle {

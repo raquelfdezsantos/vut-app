@@ -3,7 +3,7 @@
     <div class="sn-reservar max-w-5xl mx-auto px-4 py-10">
         <header class="mb-8 text-center">
             <h1 class="text-4xl font-serif mb-3" style="font-weight:400;">Contacto</h1>
-            <p class="text-neutral-300 max-w-2xl mx-auto whitespace-nowrap">¿Dudas, consultas o disponibilidad especial? Escríbenos y te responderemos lo antes posible.</p>
+            <p class="text-neutral-300 max-w-2xl mx-auto whitespace-normal md:whitespace-nowrap">¿Dudas, consultas o disponibilidad especial? Escríbenos y te responderemos lo antes posible.</p>
         </header>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-10 items-stretch">
             <!-- Formulario (estrecho) -->
