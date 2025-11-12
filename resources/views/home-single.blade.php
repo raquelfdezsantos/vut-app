@@ -1,90 +1,96 @@
+{{-- resources/views/home-single.blade.php --}}
 @extends('layouts.app')
 
-@section('title', $property ? ($property->name . ' – Staynest') : 'Staynest')
+@section('title', ($property->name ?? 'Staynest') . ' – Staynest')
 
 @section('content')
-    <div class="sn-reservar py-10">
-        <header class="mb-7 text-center">
-            <h1 class="text-4xl font-serif mb-4">{{ $property->name ?? 'Staynest' }}</h1>
-            @if($property && ($property->license ?? null))
-                <p class="text-neutral-300 text-sm -mt-2">Licencia: {{ $property->license }}</p>
-            @endif
-        </header>
+    @php
+        // Fotos ordenadas; cogemos la primera para el hero o usamos fallback
+        $photos = ($property?->photos?->sortBy('sort_order')) ?? collect();
+        $first  = $photos->first();
+        $hero   = ($first && !empty($first->url))
+                    ? (str_starts_with($first->url, 'http') ? $first->url : asset('storage/' . ltrim($first->url, '/')))
+                    : 'https://picsum.photos/1600/900';
+        $morePhotos = $photos->slice(1, 8);
+    @endphp
 
-        {{-- Galería principal custom (Foto grande + 4/6 miniaturas) --}}
-        @php
-            $photos = $property?->photos?->sortBy('sort_order') ?? collect();
-            $main = $photos->first();
-            $thumbs = $photos->slice(1, 6); // máximo 6
-        @endphp
+    {{-- HERO (de momento no transparente, eso lo afinamos luego) --}}
+    <section class="sn-hero" style="--hero-img: url('{{ $hero }}')">
+        <div class="sn-hero__overlay"></div>
 
-        @if($photos->count())
-            <section class="sn-home-gallery-wide" style="margin-bottom: var(--spacing-2xl);">
-                <div class="sn-gallery-grid">
-                    {{-- Imagen principal --}}
-                    @if($main)
-                        @php
-                            $srcMain = str_starts_with($main->url ?? '', 'http') ? $main->url : asset('storage/' . ltrim($main->url ?? '', '/'));
-                            $wMain = $main->width ?? 1600;
-                            $hMain = $main->height ?? 1067;
-                          @endphp
-                        <a href="{{ $srcMain }}" data-pswp-width="{{ $wMain }}" data-pswp-height="{{ $hMain }}"
-                            class="sn-main-wrapper">
-                            <img src="{{ $srcMain }}" alt="Foto principal {{ $property->name }}" class="sn-main-photo"
-                                loading="lazy">
-                        </a>
-                    @endif
+        <div class="container sn-hero__content">
+            <div>
+                <h1 class="sn-hero__title">{{ $property->name ?? 'Staynest' }}</h1>
+                <div class="sn-hero__strap">
+                    {{ $property->short_tagline ?? 'Tu escapada perfecta, todo el año.' }}
+                </div>
+            </div>
 
-                    {{-- Miniaturas --}}
-                    <div class="sn-thumbs-wrapper">
-                        @foreach($thumbs as $photo)
-                            @php
-                                $src = str_starts_with($photo->url ?? '', 'http') ? $photo->url : asset('storage/' . ltrim($photo->url ?? '', '/'));
-                                $w = $photo->width ?? 1600;
-                                $h = $photo->height ?? 1067;
-                            @endphp
-                            <a href="{{ $src }}" data-pswp-width="{{ $w }}" data-pswp-height="{{ $h }}" class="sn-thumb-item">
-                                <img src="{{ $src }}" alt="Thumbnail {{ $loop->iteration }}" loading="lazy">
-                            </a>
-                        @endforeach
+            @if($property && ($property->tourism_license || $property->rental_registration))
+                <div class="sn-hero__panel-wrap">
+                    <div class="sn-hero__panel">
+                        <div>
+                            <small>Asturias — Registro autonómico</small>
+                            <strong>{{ $property->tourism_license ?? '—' }}</strong>
+                        </div>
+                        <div>
+                            <small>España — Registro nacional</small>
+                            <strong>{{ $property->rental_registration ?? '—' }}</strong>
+                        </div>
                     </div>
                 </div>
-            </section>
-        @else
-            <section style="margin-bottom: var(--spacing-2xl);">
-                <div style="padding:1.25rem; border:1px dashed #2a2a2a; border-radius:12px; color:#aaa;">Aún no hay fotos en la
-                    galería.</div>
-            </section>
-        @endif
-
-        <div class="sn-reading">
-            @if($property && ($property->tourism_license || $property->rental_registration))
-                <section
-                    style="margin: var(--spacing-md) auto var(--spacing-xl); max-width:1200px; background: var(--color-bg-secondary); border:1px solid var(--color-accent); border-radius: var(--radius-base); padding: .95rem 1.25rem; display:grid; grid-template-columns:1fr 1fr; gap:2rem; align-items:start;">
-                    <div style="display:flex; flex-direction:column; gap:4px; font-size:.85rem;">
-                        <span style="font-weight:600; color: var(--color-text-primary);">Información legal</span>
-                        @if($property->tourism_license)
-                            <span style="color: var(--color-text-secondary);">Asturias - Número de registro autonómico<br><strong
-                                    style="color: var(--color-text-primary); font-weight:600;">{{ $property->tourism_license }}</strong></span>
-                        @endif
-                    </div>
-                    <div style="display:flex; flex-direction:column; gap:4px; font-size:.85rem; text-align:right;">
-                        <span style="font-weight:600; color: var(--color-text-primary); visibility:hidden;">Datos del
-                            registro</span>
-                        @if($property->rental_registration)
-                            <span style="color: var(--color-text-secondary);">España - Número de registro nacional<br><strong
-                                    style="color: var(--color-text-primary); font-weight:600;">{{ $property->rental_registration }}</strong></span>
-                        @endif
-                    </div>
-                </section>
             @endif
-
-            {{-- Descripción --}}
-            <article style="max-width: 720px; color: var(--color-text-secondary); line-height:1.7;">
-                {!! nl2br(e($property->description ?? 'Alojamiento acogedor y minimalista.')) !!}
-            </article>
         </div>
-@endsection
-</div>
 
-{{-- Inicialización de PhotoSwipe movida a resources/js/app.js --}}
+        <div class="sn-hero__blend"></div>
+    </section>
+
+    {{-- DESCRIPCIÓN (mismo ancho que Entorno) --}}
+    <section class="sn-reading" style="margin-top: var(--spacing-xl);">
+        <article style="color: var(--color-text-secondary); line-height:1.7;">
+            {!! nl2br(e($property->description ?? 'Alojamiento acogedor y minimalista.')) !!}
+        </article>
+    </section>
+
+    {{-- GALERÍA compacta (sin B/N) --}}
+    @if($morePhotos->count() > 0)
+        <section class="sn-reading" style="margin-top: var(--spacing-xl);">
+            <div class="sn-gallery-compact"
+                 style="display:grid; gap:10px; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));">
+                @foreach($morePhotos as $p)
+                    @php
+                        $src = (!empty($p->url) && str_starts_with($p->url, 'http'))
+                                ? $p->url
+                                : asset('storage/' . ltrim($p->url ?? '', '/'));
+                        $w = $p->width ?? 1600;
+                        $h = $p->height ?? 1067;
+                    @endphp
+                    <a href="{{ $src }}" data-pswp-width="{{ $w }}" data-pswp-height="{{ $h }}">
+                        <img src="{{ $src }}" alt="Foto {{ $loop->iteration }}" loading="lazy"
+                             style="width:100%; height:160px; object-fit:cover; border-radius: var(--radius-base);">
+                    </a>
+                @endforeach
+            </div>
+            <div style="text-align:center; margin-top:1rem;">
+                <button type="button" class="sn-btn sn-btn-accent"
+                        onclick="document.querySelector('.sn-gallery-compact a')?.click()">
+                    Ver galería
+                </button>
+            </div>
+        </section>
+    @endif
+@endsection
+
+@push('scripts')
+    <script type="module">
+        import PhotoSwipeLightbox from 'photoswipe/lightbox';
+        import 'photoswipe/style.css';
+        const lb = new PhotoSwipeLightbox({
+            gallery: '.sn-gallery-compact',
+            children: 'a',
+            showHideAnimationType: 'fade',
+            pswpModule: () => import('photoswipe')
+        });
+        lb.init();
+    </script>
+@endpush

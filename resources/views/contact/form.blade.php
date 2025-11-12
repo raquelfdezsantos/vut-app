@@ -1,45 +1,81 @@
+@extends('layouts.app')
 
-<x-app-layout :compactMain="true">
+@section('title', 'Contacto')
+
+@section('content')
     <div class="sn-reservar max-w-5xl mx-auto px-4 py-10">
         <header class="mb-8 text-center">
             <h1 class="text-4xl font-serif mb-3" style="font-weight:400;">Contacto</h1>
-            <p class="text-neutral-300 max-w-2xl mx-auto whitespace-normal md:whitespace-nowrap">¿Dudas, consultas o disponibilidad especial? Escríbenos y te responderemos lo antes posible.</p>
+            <p class="text-neutral-300 max-w-2xl mx-auto whitespace-normal md:whitespace-nowrap">
+                ¿Dudas, consultas o disponibilidad especial? Escríbenos y te responderemos lo antes posible.
+            </p>
         </header>
+
         <div class="grid grid-cols-1 md:grid-cols-4 gap-10 items-stretch">
             <!-- Formulario (estrecho) -->
-            <div id="contact-form-column" class="md:col-span-2 lg:col-span-2 space-y-6 max-w-xl flex flex-col">
+            <div id="contact-form-column"
+                 class="md:col-span-2 lg:col-span-2 space-y-6 max-w-xl flex flex-col">
                 @if (session('success'))
-                    <div class="mb-4" style="padding: .6rem .75rem; background: #204b23; color:#c6f6d5; border:1px solid #2f6b33; border-radius:6px;">
+                    <div class="mb-4"
+                         style="padding: .6rem .75rem; background: #204b23; color:#c6f6d5; border:1px solid #2f6b33; border-radius:6px;">
                         {{ session('success') }}
                     </div>
                 @endif
-                <form method="POST" action="{{ route('contact.store') }}" class="space-y-4" style="display:flex;flex-direction:column;">
+
+                <form method="POST"
+                      action="{{ route('contact.store') }}"
+                      class="space-y-4"
+                      style="display:flex;flex-direction:column;">
                     @csrf
+
                     <div>
                         <x-input-label for="name" value="Nombre" />
-                        <x-text-input id="name" name="name" class="block mt-1 w-full" :value="old('name')" required autofocus />
+                        <x-text-input id="name"
+                                      name="name"
+                                      class="block mt-1 w-full"
+                                      :value="old('name')"
+                                      required
+                                      autofocus />
                         <x-input-error :messages="$errors->get('name')" class="mt-2" />
                     </div>
+
                     <div>
                         <x-input-label for="email" value="Email" />
-                        <x-text-input id="email" type="email" name="email" class="block mt-1 w-full" :value="old('email')" required />
+                        <x-text-input id="email"
+                                      type="email"
+                                      name="email"
+                                      class="block mt-1 w-full"
+                                      :value="old('email')"
+                                      required />
                         <x-input-error :messages="$errors->get('email')" class="mt-2" />
                     </div>
+
                     <div>
                         <x-input-label for="subject" value="Asunto" />
-                        <x-text-input id="subject" name="subject" class="block mt-1 w-full" :value="old('subject')" required />
+                        <x-text-input id="subject"
+                                      name="subject"
+                                      class="block mt-1 w-full"
+                                      :value="old('subject')"
+                                      required />
                         <x-input-error :messages="$errors->get('subject')" class="mt-2" />
                     </div>
+
                     <div>
                         <x-input-label for="message" value="Mensaje" />
-                        <textarea id="message" name="message" rows="6" class="sn-input w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-1 focus:ring-offset-0 focus:ring-[color:var(--color-accent)] focus:border-[color:var(--color-accent)] placeholder:text-neutral-400" required>{{ old('message') }}</textarea>
+                        <textarea id="message"
+                                  name="message"
+                                  rows="6"
+                                  class="sn-input w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-1 focus:ring-offset-0 focus:ring-[color:var(--color-accent)] focus:border-[color:var(--color-accent)] placeholder:text-neutral-400"
+                                  required>{{ old('message') }}</textarea>
                         <x-input-error :messages="$errors->get('message')" class="mt-2" />
                     </div>
+
                     <div style="align-self:flex-start; margin-top:.5rem;">
                         <x-primary-button>Enviar</x-primary-button>
                     </div>
                 </form>
             </div>
+
             {{-- MAPA --}}
             <div class="md:col-span-2 lg:col-span-2 space-y-4">
                 <h2 class="font-serif text-xl mb-2" style="font-weight:500;">Dónde estamos</h2>
@@ -49,7 +85,9 @@
                     @if(!empty(optional($property)->city)) · {{ optional($property)->city }}@endif
                     @if(!empty(optional($property)->province)) ({{ optional($property)->province }})@endif
                 </div>
-                <div id="map" class="w-full" style="height:460px;border:1px solid var(--color-border-light);border-radius:var(--radius-base);overflow:hidden;"></div>
+
+                <div id="map" class="w-full"
+                     style="height:460px;border:1px solid var(--color-border-light);border-radius:var(--radius-base);overflow:hidden;"></div>
             </div>
 
             @php
@@ -68,106 +106,106 @@
                     const mapEl = document.getElementById('map');
 
                     @if($hasCoords)
-                            // Coordenadas exactas guardadas (forzadas a numérico sin redondeos adicionales)
-                            // Usamos string->Number para respetar toda la precisión almacenada en DB
-                            const loc = {
-                                lat: Number(@json((string) $property->latitude)),
-                                lng: Number(@json((string) $property->longitude))
-                            };
-                            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                        const loc = {
+                            lat: Number(@json((string) $property->latitude)),
+                            lng: Number(@json((string) $property->longitude))
+                        };
+                        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
-                            // Paleta oscura sólo si no tenemos un Map ID específico oscuro
-                            const darkStylesBase = [
-                                { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
-                                { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
-                                { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
-                                { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#d59563' }] },
-                                { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#d59563' }] },
-                                { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#263c3f' }] },
-                                { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#6b9a76' }] },
-                                { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#38414e' }] },
-                                { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212a37' }] },
-                                { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#9ca5b3' }] },
-                                { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#746855' }] },
-                                { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#1f2835' }] },
-                                { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#f3d19c' }] },
-                                { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#2f3948' }] },
-                                { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#17263c' }] },
-                                { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#515c6d' }] },
-                                { featureType: 'water', elementType: 'labels.text.stroke', stylers: [{ color: '#17263c' }] }
-                            ];
+                        const darkStylesBase = [
+                            { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
+                            { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
+                            { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
+                            { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#d59563' }] },
+                            { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#d59563' }] },
+                            { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#263c3f' }] },
+                            { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#6b9a76' }] },
+                            { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#38414e' }] },
+                            { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212a37' }] },
+                            { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#9ca5b3' }] },
+                            { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#746855' }] },
+                            { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#1f2835' }] },
+                            { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#f3d19c' }] },
+                            { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#2f3948' }] },
+                            { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#17263c' }] },
+                            { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#515c6d' }] },
+                            { featureType: 'water', elementType: 'labels.text.stroke', stylers: [{ color: '#17263c' }] }
+                        ];
 
-                            const mapIdDefault = @json(config('services.google_maps.map_id'));
-                            const mapIdLight   = @json(config('services.google_maps.map_id_light'));
-                            const mapIdDark    = @json(config('services.google_maps.map_id_dark'));
+                        const mapIdDefault = @json(config('services.google_maps.map_id'));
+                        const mapIdLight   = @json(config('services.google_maps.map_id_light'));
+                        const mapIdDark    = @json(config('services.google_maps.map_id_dark'));
 
-                            // Selección dinámica de Map ID
-                            let mapIdToUse = mapIdDefault;
-                            if (isDark) {
-                                if (mapIdDark) {
-                                    mapIdToUse = mapIdDark; // preferimos el específico oscuro si existe
-                                } else if (!mapIdDefault && mapIdLight) {
-                                    // No hay default ni dark; usamos el claro sólo para que cargue sin estilos (luego añadimos estilos oscuros)
-                                    mapIdToUse = mapIdLight;
-                                }
+                        let mapIdToUse = mapIdDefault;
+                        if (isDark) {
+                            if (mapIdDark) {
+                                mapIdToUse = mapIdDark;
+                            } else if (!mapIdDefault && mapIdLight) {
+                                mapIdToUse = mapIdLight;
                             }
+                        }
 
-                            const mapOptions = {
-                                center: loc,
-                                zoom: 16
-                            };
-                            if (mapIdToUse) {
-                                mapOptions.mapId = mapIdToUse;
-                            }
-                            // Sólo aplicamos estilos si estamos en oscuro y NO hay un mapIdDark definido (porque con mapId+styles da el warning)
-                            if (isDark && !mapIdDark) {
-                                mapOptions.styles = darkStylesBase;
-                            }
+                        const mapOptions = {
+                            center: loc,
+                            zoom: 16
+                        };
+                        if (mapIdToUse) {
+                            mapOptions.mapId = mapIdToUse;
+                        }
+                        if (isDark && !mapIdDark) {
+                            mapOptions.styles = darkStylesBase;
+                        }
 
-                            const map = new google.maps.Map(mapEl, mapOptions);
+                        const map = new google.maps.Map(mapEl, mapOptions);
 
-                            if (google.maps.marker?.AdvancedMarkerElement) {
-                                new google.maps.marker.AdvancedMarkerElement({ map, position: loc, title: @json($property->name) });
-                            } else {
-                                new google.maps.Marker({ map, position: loc, title: @json($property->name) });
-                            }
+                        if (google.maps.marker?.AdvancedMarkerElement) {
+                            new google.maps.marker.AdvancedMarkerElement({
+                                map,
+                                position: loc,
+                                title: @json($property->name)
+                            });
+                        } else {
+                            new google.maps.Marker({
+                                map,
+                                position: loc,
+                                title: @json($property->name)
+                            });
+                        }
 
-                            // Ajuste de altura para alinear con textarea
-                            const syncMapHeight = () => {
-                                const ta = document.getElementById('message');
-                                if (!ta) return;
-                                const taRect = ta.getBoundingClientRect();
-                                const mapRect = mapEl.getBoundingClientRect();
-                                const desired = Math.max(260, Math.round(taRect.bottom - mapRect.top));
-                                mapEl.style.height = desired + 'px';
-                            };
-                            syncMapHeight();
-                            window.addEventListener('resize', () => requestAnimationFrame(syncMapHeight));
-                            console.log('Contacto map loc:', loc, 'dark:', isDark, 'mapIdUsed:', mapIdToUse, 'appliedInlineDarkStyles:', !!(isDark && !mapIdDark));
+                        const syncMapHeight = () => {
+                            const ta = document.getElementById('message');
+                            if (!ta) return;
+                            const taRect = ta.getBoundingClientRect();
+                            const mapRect = mapEl.getBoundingClientRect();
+                            const desired = Math.max(260, Math.round(taRect.bottom - mapRect.top));
+                            mapEl.style.height = desired + 'px';
+                        };
+                        syncMapHeight();
+                        window.addEventListener('resize', () => requestAnimationFrame(syncMapHeight));
+
                     @else
-                        // geocodificar dirección (puede no ser exacto)
                         const address = @json($fullAddress);
-                                const geocoder = new google.maps.Geocoder();
+                        const geocoder = new google.maps.Geocoder();
 
-                                geocoder.geocode({ address }, (results, status) => {
-                                    if (status === 'OK' && results[0]) {
-                                        const loc = results[0].geometry.location;
-                                        const map = new google.maps.Map(mapEl, {
-                                            center: loc,
-                                            zoom: 15,
-                                            mapId: 'f8dd0379fb4feadfc2e9ae6d',
-                                        });
-                                        new google.maps.marker.AdvancedMarkerElement({
-                                            map,
-                                            position: loc,
-                                            title: @json($property->name),
-                                        });
-                                    } else {
-                                        mapEl.innerHTML = 'No se pudo mostrar el mapa.';
-                                    }
+                        geocoder.geocode({ address }, (results, status) => {
+                            if (status === 'OK' && results[0]) {
+                                const loc = results[0].geometry.location;
+                                const map = new google.maps.Map(mapEl, {
+                                    center: loc,
+                                    zoom: 15,
+                                    mapId: 'f8dd0379fb4feadfc2e9ae6d',
                                 });
+                                new google.maps.marker.AdvancedMarkerElement({
+                                    map,
+                                    position: loc,
+                                    title: @json($property->name),
+                                });
+                            } else {
+                                mapEl.innerHTML = 'No se pudo mostrar el mapa.';
+                            }
+                        });
                     @endif
-    }
+                }
 
                 (function () {
                     const params = new URLSearchParams({
@@ -186,4 +224,4 @@
             </script>
         </div>
     </div>
-</x-app-layout>
+@endsection
