@@ -140,6 +140,8 @@
      /* Radio estándar para elementos interactivos y contenedores
          (igual que la galería: 2px) */
      --radius-base: 2px;
+     /* Fallback de ancho de scrollbar (Windows clásico aprox 14px) */
+     --sn-scrollbar-fallback: 14px;
 }
 
 /* ============================================================================
@@ -177,6 +179,11 @@
     padding: 0;
     box-sizing: border-box;
 }
+
+html, body {
+    overflow-x: hidden;
+}
+
 
 html {
     scroll-behavior: smooth;
@@ -437,16 +444,99 @@ html[data-theme="dark"] .sn-auth input[type="checkbox"]:focus {
 /* ============================================================================
    NAVEGACIÓN PRINCIPAL
    ============================================================================ */
+
 .nav-header {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
+    /*en vez de width:100%, recortamos usando el ancho de la scrollbar */
+    right: calc(var(--sn-scrollbar-w, var(--sn-scrollbar-fallback)));
     z-index: 1000;
+
     background-color: var(--color-bg-primary);
     border-bottom: 1px solid var(--color-border-light);
-    transition: background-color var(--transition-base);
+    transition: background-color var(--transition-base), border-color var(--transition-base);
 }
+
+
+
+
+/* El body se desplaza hacia abajo según la altura real del header */
+body.sn-has-fixed-header {
+    padding-top: var(--sn-header-h, 0px);
+}
+.nav-spacer {
+    height: 0;
+}
+
+/* Home: header transparente SOBRE el hero */
+.nav-header--transparent {
+    background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.90),
+        rgba(0,0,0,0.55),
+        rgba(24,24,24,0.15),
+        transparent
+    );
+    border-bottom-color: transparent;
+}
+
+html[data-theme="light"] .nav-header--transparent {
+    background: linear-gradient(
+        to bottom,
+        rgba(24,24,24,0.90),
+        rgba(24,24,24,0.55),
+        rgba(230,230,230,0.15),
+        transparent
+    );
+    border-bottom-color: transparent;
+}
+
+/* Modo sólido explícito (cuando haces scroll o lo fuerza JS) */
+.nav-header--solid {
+    background-color: var(--color-bg-primary);
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+/* Posición del toggle y hamburguesa (sin historias de scrollbar) */
+.nav-header .theme-toggle--corner {
+    position: absolute;
+    top: 50%;
+    right: var(--spacing-xl);
+    transform: translateY(-50%);
+    z-index: 1000;
+}
+
+.nav-header .mobile-menu-toggle {
+    position: absolute;
+    top: 50%;
+    right: calc(var(--spacing-xl) + 44px);
+    transform: translateY(-50%);
+}
+
+
+/* Toggle de tema (base) */
+.theme-toggle {
+    background: none;
+    border: 1px solid var(--color-border-light);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0; /* evita mover layout por el texto */
+    transition: border-color .25s, background-color .25s, color .25s;
+}
+.theme-toggle:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    background-color: rgba(77,141,148,0.12);
+}
+.theme-toggle svg { color: currentColor; }
+
 
 .nav-container {
     max-width: 1400px;
@@ -455,7 +545,9 @@ html[data-theme="dark"] .sn-auth input[type="checkbox"]:focus {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    position: relative;
 }
+
 
 .nav-logo {
     height: 48px;
@@ -704,7 +796,11 @@ html[data-theme="dark"] .sn-auth input[type="checkbox"]:focus {
 }
 
 .sn-btn-accent {
-    background: #09383D;
+    background-color: var(--color-accent);
+}
+
+.sn-btn-accent:hover {
+    background-color: var(--color-accent-hover);
 }
 
 /* =========================
@@ -846,15 +942,21 @@ html[data-theme="dark"] .sn-auth input[type="checkbox"]:focus {
 /* HERO */
 .sn-hero{
   position: relative;
-  min-height: 78vh;
-  margin-inline: calc(50% - 50vw); /* full-bleed */
-  width: 100vw;
+    /* alto completo; header encima en transparencia */
+    min-height: 100vh;
+    width: 100%;
+    margin: 0;
+
   background-image: var(--hero-img);
   background-size: cover;
   background-position: center;
   display: grid;
   align-items: end;
 }
+
+/* Variante para anclar el hero al top real bajo header fijo (compensa padding de body) */
+.sn-hero--flush-top { margin-top: calc(-1 * var(--sn-header-h, 0px)); }
+
 .sn-hero__overlay{
   position:absolute; inset:0;
   background: linear-gradient(180deg, rgba(0,0,0,.28) 0%, rgba(0,0,0,.10) 40%, rgba(0,0,0,0) 60%);
@@ -900,6 +1002,89 @@ html[data-theme="dark"] .sn-auth input[type="checkbox"]:focus {
 /* Contenido de lectura (mismo ancho que Entorno) */
 .sn-reading{ max-width:960px; margin-inline:auto; }
 
+/* Header: transición suave y soporte clases is-transparent/is-solid (ya definidas arriba en otro bloque) */
+.nav-header { transition: background-color .35s, border-color .35s; overflow: visible; }
+
+/* Hamburguesa y menú responsive */
+.mobile-menu-toggle { 
+    display:none; 
+    background:none; 
+    border:0; 
+    color:inherit; 
+    cursor:pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all var(--transition-fast);
+    position: relative;
+}
+.mobile-menu-toggle:hover {
+    color: var(--color-accent);
+    background-color: rgba(77, 141, 148, 0.10);
+}
+/* Línea indicadora cuando el menú está abierto */
+.mobile-menu-toggle.is-active::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 2px;
+    background-color: var(--color-accent);
+}
+
+@media (max-width: 900px){
+    /* Dropdown flotante FUERA del header */
+    .nav-menu { 
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: calc(var(--spacing-xl) + 44px);
+        min-width: 200px;
+        background: var(--color-bg-primary);
+        border: 1px solid var(--color-border-light);
+        border-radius: 4px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        padding: var(--spacing-sm);
+        z-index: 1100;
+        flex-direction: column;
+        gap: 0;
+        list-style: none;
+        margin-top: 4px;
+    }
+    .nav-menu.is-open { display: flex; }
+    .nav-menu li { margin: 0; }
+    .nav-menu .nav-link { 
+        display: block; 
+        padding: var(--spacing-sm) var(--spacing-md);
+        border-radius: 4px;
+        width: 100%;
+    }
+    .nav-menu .nav-link.active::after {
+        bottom: 2px;
+        width: 24px;
+        height: 2px;
+    }
+    .mobile-menu-toggle { display:inline-flex; align-items:center; justify-content:center; }
+    /* Recolocamos mobile-menu y theme toggle en pantallas pequeñas (respetando scrollbar) */
+    .nav-header .mobile-menu-toggle { right: calc(var(--spacing-xl) + var(--sn-scrollbar-w, var(--sn-scrollbar-fallback)) + 44px) !important; }
+    .nav-header .theme-toggle--corner { right: calc(var(--spacing-xl) + var(--sn-scrollbar-w, var(--sn-scrollbar-fallback))) !important; }
+}
+@media (min-width:901px){
+    .nav-menu { display:flex; align-items:center; gap: var(--spacing-xl); list-style:none; }
+    .mobile-menu-toggle { display:none; }
+}
+
+/* Toggle tema */
+.theme-toggle.theme-toggle--corner { position:absolute; right:var(--spacing-md); top:50%; transform:translateY(-50%); display:inline-flex; align-items:center; gap:4px; }
+.theme-toggle .icon-sun-wrapper, .theme-toggle .icon-moon-wrapper { display:inline-flex; }
+html[data-theme="dark"]  .theme-toggle .icon-sun-wrapper { display:none; }
+html[data-theme="dark"]  .theme-toggle .icon-moon-wrapper { display:inline-flex; }
+html[data-theme="light"] .theme-toggle .icon-sun-wrapper { display:inline-flex; }
+html[data-theme="light"] .theme-toggle .icon-moon-wrapper { display:none; }
+
+
+
 /* ===== Sticky footer básico (global) ===== */
 html, body { height: 100%; }
 body { display: flex; flex-direction: column; }
@@ -909,45 +1094,121 @@ footer { flex-shrink: 0; }
 /* ===== Footer responsive (el grid que tenías) ===== */
 .footer-grid { display: grid; }
 
+
 @media (max-width: 639px) {
-  .footer-grid { grid-template-columns: 1fr; }
-  .footer-col-1, .footer-col-2, .footer-col-3 { text-align: center !important; }
-  .footer-col-2 { margin-inline: auto; }
-  .footer-col-3 .footer-prop { text-align: center !important; }
+    .footer-grid { grid-template-columns: 1fr; }
+    /* En móvil todo el texto de las 3 columnas debe ir a la izquierda */
+    .footer-col-1, .footer-col-2, .footer-col-3 { text-align: left !important; }
+    .footer-col-2 { margin-inline: 0; }
+    .footer-col-3 .footer-prop { text-align: left !important; }
 }
 
-@media (min-width: 640px) and (max-width: 899px) {
-  .footer-grid { grid-template-columns: 1fr 1fr; }
-  .footer-col-3 { grid-column: 1 / -1; text-align: center; margin-top: var(--spacing-md); }
-  .footer-col-3 .footer-prop { text-align: center; }
+/* Layout único simplificado a partir de 640px: 3 columnas, col2 centrada, col3 anclada derecha */
+@media (min-width:640px) {
+    .footer-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        column-gap: var(--spacing-xl);
+        align-items: start;
+    }
+
+    /* Columna 1: ancho completo de su track, alineada a la izquierda */
+    .footer-col-1 {
+        justify-self: start;
+        text-align: left;
+        max-width: none;
+    }
+
+    /* Columna 2 centrada */
+    .footer-col-2 {
+        justify-self: center;
+        margin-inline: auto;
+        text-align: left;
+    }
+
+    /* Columna 3: el bloque se pega al borde derecho del grid */
+    .footer-col-3 {
+        justify-self: end;      /* esto empuja la columna 3 hasta el margen derecho */
+        text-align: left;
+    }
 }
 
-@media (min-width: 900px) {
-  .footer-grid { grid-template-columns: 1fr minmax(240px, 320px) 1fr; }
-  .footer-col-3 { grid-column: auto; text-align: right; margin-top: 0; }
-}
-
-/* Icono cookie: blanco en dark, negro en light */
-html[data-theme="dark"] .footer-cookie-icon { color: #ffffff; }
-html[data-theme="light"] .footer-cookie-icon { color: #000000; }
 
 /* Alineaciones extra en desktop */
-@media (min-width: 768px) {
-  .footer-col-1 { text-align: left; }
-  .footer-col-2 { display: flex; flex-direction: column; align-items: flex-start; }
-  .footer-col-2 h3 { width: 100%; text-align: left; margin-bottom: var(--spacing-sm); }
-  .footer-col-2 ul { width: auto; text-align: left; }
-  .footer-col-3 { text-align: right; }
-  .footer-col-3 .footer-prop { display: inline-block; text-align: left; }
+/* Ajustes menores opcionales (ya cubiertos por el layout único) */
+@media (min-width:768px){
+    .footer-col-2 { display:flex; flex-direction:column; align-items:flex-start; }
+    .footer-col-2 h3 { margin-bottom: var(--spacing-sm); }
 }
 
-@media (min-width: 1024px) {
-  .footer-col-2 { margin-inline: auto; padding: 0; }
-}
+/* (El breakpoint 1024px ya no necesita estilos adicionales para col2: se aplica desde 640px) */
 
 @media (max-width: 640px) {
-  .footer-cookie-row { flex-wrap: wrap; flex-direction: row; gap: 6px; justify-content: center; }
-  .footer-credit { display: block !important; }
+    .footer-credit { display: block !important; }
 }
 
+
+/* Cookie */
+.footer-cookie-row {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--spacing-sm);
+}
+
+/* Bloque icono + texto juntos */
+.footer-cookie-inner {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    max-width: min(100%, 60ch);
+    text-align: center;
+}
+
+/* Icono siempre pegadito al texto, no se separa a otra línea */
+.footer-cookie-icon {
+    flex: 0 0 auto;
+}
+
+/* El texto puede partir en varias líneas; el icono se queda arriba a la izquierda del bloque */
+.footer-cookie-inner > span {
+    white-space: normal;
+}
+
+@media (max-width: 480px) {
+    .footer-cookie-inner {
+        justify-content: center;
+        text-align: center;
+    }
+}
+
+/* Pequeño ajuste general para que el icono vaya más pegado al texto */
+.footer-cookie-icon {
+    margin-right: 4px;
+}
+
+
+
+/* Columna 3 del footer en tablets: pegada a la derecha con texto alineado a la izquierda */
+@media (min-width: 640px) and (max-width: 1200px) {
+    .footer-col-3 {
+        display: flex !important;
+        justify-content: flex-end !important; /* pegado a la derecha */
+    }
+
+    .footer-col-3 .footer-prop-wrap,
+    .footer-col-3 .footer-prop {
+        width: max-content; /* bloque pegado al borde derecho */
+        max-width: 32ch !important; /* fuerza wrap para equilibrar con col1 */
+        text-align: left !important; /* texto alineado a la izquierda dentro del bloque */
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+
+    /* Equilibrar col1 con el mismo ancho m�ximo */
+    .footer-col-1 {
+        max-width: 32ch;
+    }
+}
 

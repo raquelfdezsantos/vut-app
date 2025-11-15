@@ -1,7 +1,8 @@
-{{-- resources/views/home-single.blade.php --}}
 @extends('layouts.app')
 
 @section('title', ($property->name ?? 'Staynest') . ' – Staynest')
+
+@php $transparentHeader = true; @endphp
 
 @section('content')
     @php
@@ -14,8 +15,9 @@
         $morePhotos = $photos->slice(1, 8);
     @endphp
 
-    {{-- HERO (de momento no transparente, eso lo afinamos luego) --}}
-    <section class="sn-hero" style="--hero-img: url('{{ $hero }}')">
+    {{-- HERO principal: flush top bajo header transparente (clase sn-hero--flush-top) --}}
+    <section class="sn-hero sn-hero--flush-top" style="--hero-img: url('{{ $hero ?? 'https://picsum.photos/1600/900' }}')">
+
         <div class="sn-hero__overlay"></div>
 
         <div class="container sn-hero__content">
@@ -53,11 +55,11 @@
     </section>
 
     {{-- GALERÍA compacta (sin B/N) --}}
-    @if($morePhotos->count() > 0)
+    @if(($morePhotos ?? collect())->count() > 0)
         <section class="sn-reading" style="margin-top: var(--spacing-xl);">
             <div class="sn-gallery-compact"
                  style="display:grid; gap:10px; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));">
-                @foreach($morePhotos as $p)
+                @foreach(($morePhotos ?? collect()) as $p)
                     @php
                         $src = (!empty($p->url) && str_starts_with($p->url, 'http'))
                                 ? $p->url
@@ -81,16 +83,3 @@
     @endif
 @endsection
 
-@push('scripts')
-    <script type="module">
-        import PhotoSwipeLightbox from 'photoswipe/lightbox';
-        import 'photoswipe/style.css';
-        const lb = new PhotoSwipeLightbox({
-            gallery: '.sn-gallery-compact',
-            children: 'a',
-            showHideAnimationType: 'fade',
-            pswpModule: () => import('photoswipe')
-        });
-        lb.init();
-    </script>
-@endpush

@@ -30,21 +30,12 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 	}
 
-	// Menú móvil hamburguesa
-	const mobileToggle = document.getElementById('mobile-menu-toggle');
-	const navMenu = document.querySelector('.nav-menu');
-	if (mobileToggle && navMenu) {
-		mobileToggle.addEventListener('click', () => {
-			navMenu.classList.toggle('is-open');
-		});
-	}
-
-	const galleryEl = document.querySelector('.sn-home-gallery');
+	const galleryEl = document.querySelector('.sn-gallery-compact');
 	if (galleryEl) {
 		// Calcula padding vertical para dejar el área visible en ~66vh (2/3 de la pantalla)
 		const padV = Math.round(window.innerHeight * 0.17); // 17% arriba y abajo => 34% total
 		const lightbox = new PhotoSwipeLightbox({
-			gallery: '.sn-home-gallery',
+			gallery: '.sn-gallery-compact',
 			children: 'a',
 			showHideAnimationType: 'fade',
 			// Asegura que la imagen no ocupe el 100% de alto: reservamos padding arriba y abajo
