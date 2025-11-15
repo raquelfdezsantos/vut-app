@@ -2,14 +2,24 @@
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
-    <form method="POST" action="{{ route('login') }}">
+    @if ($errors->any())
+        <div class="alert alert-error mb-4">
+            <strong>Revisa los siguientes campos:</strong>
+            <ul style="margin-top: 0.5rem; padding-left: 1.25rem; list-style: disc;">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <form method="POST" action="{{ route('login') }}" novalidate>
         @csrf
 
         <!-- Correo electrónico -->
         <div>
             <x-input-label for="email" value="Correo electrónico" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" autofocus autocomplete="username" />
         </div>
 
         <!-- Contraseña -->
@@ -19,9 +29,7 @@
             <x-text-input id="password" class="block mt-1 w-full"
                             type="password"
                             name="password"
-                            required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+                            autocomplete="current-password" />
         </div>
 
         <!-- Recuérdame -->

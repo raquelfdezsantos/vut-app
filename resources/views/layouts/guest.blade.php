@@ -30,10 +30,10 @@
             <div>
                 {{ $slot }}
             </div>
+            <footer style="margin-top: var(--spacing-lg); text-align:center; font-size: var(--text-xs); color: var(--color-text-muted); padding-top: var(--spacing-lg);">
+                &copy; {{ date('Y') }} {{ config('app.name') }} · Acceso seguro · <a href="{{ route('legal.cookies') }}" class="sn-link" style="font-size: var(--text-xs);">Cookies</a>
+            </footer>
         </section>
     </main>
-    <footer style="margin-top: var(--spacing-2xl); text-align:center; font-size: var(--text-xs); color: var(--color-text-muted); padding: var(--spacing-lg) 0;">
-        &copy; {{ date('Y') }} {{ config('app.name') }} · Acceso seguro · <a href="{{ route('legal.cookies') }}" class="sn-link" style="font-size: var(--text-xs);">Cookies</a>
-    </footer>
 </body>
 </html>

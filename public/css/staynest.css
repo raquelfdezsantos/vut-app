@@ -395,6 +395,12 @@ html[data-theme="light"] .sn-auth input[type="checkbox"] {
     border-color: var(--color-border-light) !important;
 }
 
+html[data-theme="light"] .sn-auth input[type="checkbox"]:checked {
+    background-color: #fff !important;
+    border-color: #333333 !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23333333' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e") !important;
+}
+
 html[data-theme="dark"] .sn-auth input[type="checkbox"] {
     background-color: var(--color-bg-secondary) !important;
     border-color: var(--color-border-light) !important;
