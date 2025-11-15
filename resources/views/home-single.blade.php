@@ -74,7 +74,7 @@
                 @endforeach
             </div>
             <div style="text-align:center; margin-top:1rem;">
-                <button type="button" class="sn-btn sn-btn-accent"
+                <button type="button" class="inline-flex items-center px-5 py-2 bg-[color:var(--color-accent)] text-white font-semibold text-sm hover:bg-[color:var(--color-accent-hover)] transition ease-in-out duration-150 focus:outline-none focus:ring-1 focus:ring-[color:var(--color-accent)] focus:ring-offset-1" style="border-radius: 2px;"
                         onclick="document.querySelector('.sn-gallery-compact a')?.click()">
                     Ver galería
                 </button>

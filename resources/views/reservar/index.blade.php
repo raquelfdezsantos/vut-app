@@ -56,7 +56,7 @@
             </div>
 
             <div class="pt-2">
-                <button type="button" class="bg-[color:var(--color-accent)] hover:bg-[color:var(--color-accent-hover)] text-white text-sm font-semibold px-5 py-2 rounded cursor-not-allowed opacity-60" disabled>
+                <button type="button" class="bg-[color:var(--color-accent)] hover:bg-[color:var(--color-accent-hover)] text-white text-sm font-semibold px-5 py-2 cursor-not-allowed opacity-60" style="border-radius: 2px;" disabled>
                     Buscar disponibilidad
                 </button>
             </div>
