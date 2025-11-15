@@ -56,7 +56,7 @@ Route::get('/contact', fn() => redirect()->route('contact.create'));
 
 // Entorno y Reservar (páginas públicas independientes - placeholders iniciales)
 Route::view('/entorno', 'entorno.index')->name('entorno');
-Route::view('/reservar', 'reservar.index')->name('reservar');
+Route::get('/reservar', [PropertyController::class, 'reservar'])->name('reservar');
 // Páginas legales
 Route::get('/aviso-legal', fn() => view('legal.aviso-legal'))->name('legal.aviso');
 Route::get('/politica-privacidad', fn() => view('legal.politica-privacidad'))->name('legal.privacidad');
