@@ -92,6 +92,42 @@
             border-color: var(--color-accent);
         }
         
+        /* Ajustar el grid de días para el nuevo tamaño */
+        .flatpickr-days {
+            width: 308px !important;
+        }
+        
+        .dayContainer {
+            width: 308px !important;
+            min-width: 308px !important;
+            max-width: 308px !important;
+            justify-content: center !important;
+        }
+        
+        /* Hacer los círculos más pequeños con espacio entre ellos */
+        .flatpickr-day {
+            max-width: 38px !important;
+            max-height: 38px !important;
+            width: 38px !important;
+            height: 38px !important;
+            line-height: 38px !important;
+            margin: 2px !important;
+        }
+        
+        /* Días de meses anterior/posterior más apagados */
+        .flatpickr-day.prevMonthDay,
+        .flatpickr-day.nextMonthDay {
+            opacity: 0.4 !important;
+        }
+        
+        /* Asegurar opacidad en días de otros meses incluso con colores */
+        .flatpickr-day.prevMonthDay.available,
+        .flatpickr-day.prevMonthDay.unavailable,
+        .flatpickr-day.nextMonthDay.available,
+        .flatpickr-day.nextMonthDay.unavailable {
+            opacity: 0.4 !important;
+        }
+        
         /* Colores de disponibilidad - Días disponibles (verde) */
         .flatpickr-day.available:not(.flatpickr-disabled):not(.selected) {
             background: var(--color-success) !important;
