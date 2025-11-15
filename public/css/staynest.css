@@ -283,6 +283,42 @@ a:hover:not(.nav-link):not(.btn):not(.btn-primary):not(.entorno-cta) {
 }
 
 /* ============================================================================
+   ALERTAS Y MENSAJES
+   ============================================================================ */
+.alert {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: 2px;
+    margin-bottom: var(--spacing-md);
+    border: 1px solid;
+    font-size: var(--text-sm);
+    line-height: 1.5;
+}
+
+.alert-success {
+    background-color: var(--color-success);
+    color: #fff;
+    border-color: color-mix(in srgb, var(--color-success) 80%, black);
+}
+
+.alert-error {
+    background-color: var(--color-error);
+    color: #fff;
+    border-color: color-mix(in srgb, var(--color-error) 80%, black);
+}
+
+.alert-warning {
+    background-color: var(--color-warning);
+    color: var(--color-text-primary);
+    border-color: color-mix(in srgb, var(--color-warning) 80%, black);
+}
+
+.alert-info {
+    background-color: var(--color-info);
+    color: #fff;
+    border-color: color-mix(in srgb, var(--color-info) 80%, black);
+}
+
+/* ============================================================================
    AJUSTES ESPECÍFICOS MODO CLARO (legibilidad)
    ============================================================================ */
 /* Headings demasiado claros en light: usar colores de texto del tema */

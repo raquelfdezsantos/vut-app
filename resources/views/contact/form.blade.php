@@ -15,17 +15,29 @@
             <!-- Formulario (estrecho) -->
             <div id="contact-form-column"
                  class="md:col-span-2 lg:col-span-2 space-y-6 max-w-xl flex flex-col">
+                
                 @if (session('success'))
-                    <div class="mb-4"
-                         style="padding: .6rem .75rem; background: #204b23; color:#c6f6d5; border:1px solid #2f6b33; border-radius:6px;">
+                    <div class="alert alert-success">
                         {{ session('success') }}
+                    </div>
+                @endif
+
+                @if ($errors->any())
+                    <div class="alert alert-error">
+                        <strong>Revisa los siguientes campos:</strong>
+                        <ul style="margin-top: 0.5rem; padding-left: 1.25rem; list-style: disc;">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
                     </div>
                 @endif
 
                 <form method="POST"
                       action="{{ route('contact.store') }}"
                       class="space-y-4"
-                      style="display:flex;flex-direction:column;">
+                      style="display:flex;flex-direction:column;"
+                      novalidate>
                     @csrf
 
                     <div>
@@ -34,9 +46,7 @@
                                       name="name"
                                       class="block mt-1 w-full"
                                       :value="old('name')"
-                                      required
                                       autofocus />
-                        <x-input-error :messages="$errors->get('name')" class="mt-2" />
                     </div>
 
                     <div>
@@ -45,9 +55,7 @@
                                       type="email"
                                       name="email"
                                       class="block mt-1 w-full"
-                                      :value="old('email')"
-                                      required />
-                        <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                                      :value="old('email')" />
                     </div>
 
                     <div>
@@ -55,9 +63,7 @@
                         <x-text-input id="subject"
                                       name="subject"
                                       class="block mt-1 w-full"
-                                      :value="old('subject')"
-                                      required />
-                        <x-input-error :messages="$errors->get('subject')" class="mt-2" />
+                                      :value="old('subject')" />
                     </div>
 
                     <div>
@@ -65,9 +71,7 @@
                         <textarea id="message"
                                   name="message"
                                   rows="6"
-                                  class="sn-input w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-1 focus:ring-offset-0 focus:ring-[color:var(--color-accent)] focus:border-[color:var(--color-accent)] placeholder:text-neutral-400"
-                                  required>{{ old('message') }}</textarea>
-                        <x-input-error :messages="$errors->get('message')" class="mt-2" />
+                                  class="sn-input w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-1 focus:ring-offset-0 focus:ring-[color:var(--color-accent)] focus:border-[color:var(--color-accent)] placeholder:text-neutral-400">{{ old('message') }}</textarea>
                     </div>
 
                     <div style="align-self:flex-start; margin-top:.5rem;">
