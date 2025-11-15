@@ -22,13 +22,13 @@
                     <div>
                         <label class="block text-sm text-neutral-300 mb-1">Fecha de entrada</label>
                         <input type="text" id="check_in"
-                            class="w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-neutral-100"
+                            class="sn-input w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-[1px] focus:ring-offset-0 focus:ring-[color:var(--color-accent)] focus:border-[color:var(--color-accent)] placeholder:text-neutral-400"
                             placeholder="YYYY-MM-DD">
                     </div>
                     <div>
                         <label class="block text-sm text-neutral-300 mb-1">Fecha de salida</label>
                         <input type="text" id="check_out"
-                            class="w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-neutral-100"
+                            class="sn-input w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-[1px] focus:ring-offset-0 focus:ring-[color:var(--color-accent)] focus:border-[color:var(--color-accent)] placeholder:text-neutral-400"
                             placeholder="YYYY-MM-DD">
                     </div>
                 </div>
@@ -37,7 +37,7 @@
                     <div>
                         <label class="block text-sm text-neutral-300 mb-1">Adultos</label>
                         <select id="adults"
-                            class="w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-neutral-100">
+                            class="sn-input w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-[1px] focus:ring-offset-0 focus:ring-[color:var(--color-accent)] focus:border-[color:var(--color-accent)]">
                             <option value="1">1</option>
                             <option value="2" selected>2</option>
                             <option value="3">3</option>
@@ -47,7 +47,7 @@
                     <div>
                         <label class="block text-sm text-neutral-300 mb-1">Niños</label>
                         <select id="children"
-                            class="w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-neutral-100">
+                            class="sn-input w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-[1px] focus:ring-offset-0 focus:ring-[color:var(--color-accent)] focus:border-[color:var(--color-accent)]">
                             <option value="0" selected>0</option>
                             <option value="1">1</option>
                             <option value="2">2</option>
@@ -56,9 +56,10 @@
                     <div>
                         <label class="block text-sm text-neutral-300 mb-1">Mascotas</label>
                         <select id="pets"
-                            class="w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-neutral-100">
+                            class="sn-input w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-[1px] focus:ring-offset-0 focus:ring-[color:var(--color-accent)] focus:border-[color:var(--color-accent)]">
                             <option value="0" selected>No</option>
-                            <option value="1">Sí</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
                         </select>
                     </div>
                 </div>
@@ -66,7 +67,7 @@
                 <div>
                     <label class="block text-sm text-neutral-300 mb-1">Notas</label>
                     <textarea id="notes"
-                        class="w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-neutral-100 h-28"
+                        class="sn-input w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-2 text-neutral-100 h-28 shadow-sm focus:outline-none focus:ring-[1px] focus:ring-offset-0 focus:ring-[color:var(--color-accent)] focus:border-[color:var(--color-accent)] placeholder:text-neutral-400"
                         placeholder="Cuéntanos cualquier necesidad especial"></textarea>
                 </div>
 

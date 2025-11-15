@@ -48,7 +48,6 @@
 </header>
 
 <div class="nav-spacer"></div>
-{{-- Estilos inline eliminados: todo vive en public/css/staynest.css --}}
 
 <script>
     (function () {

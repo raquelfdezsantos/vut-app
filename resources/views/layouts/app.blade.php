@@ -146,6 +146,7 @@
     </footer>
 
     @stack('scripts')
+    @yield('scripts')
 
 </body>
 
