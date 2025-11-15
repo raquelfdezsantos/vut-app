@@ -167,7 +167,15 @@
                 real y pasarela de pago más adelante.</p>
         </header>
 
-        <div class="grid md:grid-cols-3 gap-8">
+        <!-- Mensaje de error -->
+        <div id="error-message" class="alert alert-error mb-4 hidden">
+            <strong>Revisa lo siguiente:</strong>
+            <ul style="margin-top: 0.5rem; padding-left: 1.25rem; list-style: disc;">
+                <li id="error-text"></li>
+            </ul>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8" style="align-items: start;">
             <!-- Formulario (placeholder) -->
             <form class="md:col-span-2 space-y-6" method="GET" action="{{ route('login') }}" id="reservationForm">
                 <input type="hidden" name="redirect" value="reservas.store">
@@ -235,8 +243,8 @@
                 </div>
             </form>
 
-            <!-- Resumen -->
-            <aside class="space-y-4">
+            <!-- Resumen - alineado con los inputs de fechas -->
+            <aside class="space-y-4" style="margin-top: 3rem;">
                 <div class="bg-neutral-800 border border-neutral-700 p-4" style="border-radius:var(--radius-base);">
                     <h3 class="font-semibold mb-2">Resumen</h3>
                     <ul class="text-sm text-neutral-300 space-y-1">
@@ -413,9 +421,12 @@
 
                     if (!checkIn || !checkOut) {
                         e.preventDefault();
-                        alert('Por favor, selecciona las fechas de entrada y salida');
+                        showError('Por favor, selecciona las fechas de entrada y salida');
                         return;
                     }
+
+                    // Ocultar error si todo está bien
+                    hideError();
 
                     const data = {
                         property_id: {{ $property->id ?? 1 }},
@@ -431,6 +442,20 @@
                     document.getElementById('reservation_data').value = JSON.stringify(data);
                     sessionStorage.setItem('pendingReservation', JSON.stringify(data));
                 });
+
+                // Funciones para mostrar/ocultar errores
+                function showError(message) {
+                    const errorDiv = document.getElementById('error-message');
+                    const errorText = document.getElementById('error-text');
+                    errorText.textContent = message;
+                    errorDiv.classList.remove('hidden');
+                    errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+
+                function hideError() {
+                    const errorDiv = document.getElementById('error-message');
+                    errorDiv.classList.add('hidden');
+                }
             });
         </script>
     </div>
