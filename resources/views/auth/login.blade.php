@@ -43,8 +43,8 @@
         <div class="flex items-center justify-end mt-4">
             @if (Route::has('password.request'))
                 <a class="text-sm transition-colors" style="color: var(--color-text-secondary); text-decoration: none;" href="{{ route('password.request') }}"
-                   onmouseover="this.style.color='var(--color-accent)'; this.style.textDecoration='underline';"
-                   onmouseout="this.style.color='var(--color-text-secondary)'; this.style.textDecoration='none';">
+                   onmouseover="this.style.color='var(--color-accent)';"
+                   onmouseout="this.style.color='var(--color-text-secondary)';">
                     ¿Has olvidado tu contraseña?
                 </a>
             @endif

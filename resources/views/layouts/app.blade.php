@@ -76,13 +76,13 @@
                     @if($property && ($property->tourism_license || $property->rental_registration))
                         @if($property->tourism_license)
                             <p style="margin-bottom:var(--spacing-sm);">
-                                <span style="font-weight:500; color:var(--color-text-primary);">Licencia Turística:</span><br>
+                                <span style="font-weight:500;">Licencia Turística:</span><br>
                                 {{ $property->tourism_license }}
                             </p>
                         @endif
                         @if($property->rental_registration)
                             <p>
-                                <span style="font-weight:500; color:var(--color-text-primary);">Registro de Alquiler:</span><br>
+                                <span style="font-weight:500;">Registro de Alquiler:</span><br>
                                 {{ $property->rental_registration }}
                             </p>
                         @endif
@@ -132,7 +132,7 @@
                         <x-icon name="cookie" :size="16" class="footer-cookie-icon" />
                         <span>
                             Este sitio utiliza cookies técnicas necesarias.
-                            <a href="{{ route('legal.cookies') }}" class="sn-link" style="text-decoration:underline;">
+                            <a href="{{ route('legal.cookies') }}" class="sn-link">
                                 Más información
                             </a>
                         </span>

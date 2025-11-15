@@ -417,12 +417,12 @@ html[data-theme="dark"] .sn-auth input[type="checkbox"]:focus {
 .sn-link {
     color: var(--color-text-secondary);
     text-decoration: none;
-    transition: color var(--transition-fast), text-decoration-color var(--transition-fast);
+    transition: color var(--transition-fast);
 }
 
 .sn-link:hover {
     color: var(--color-accent);
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 .sn-link:focus {
