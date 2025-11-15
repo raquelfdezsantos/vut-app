@@ -4,6 +4,125 @@
 
 @section('content')
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        /* Calendario Flatpickr - Modo Oscuro */
+        html[data-theme="dark"] .flatpickr-calendar {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border-light);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        html[data-theme="dark"] .flatpickr-months {
+            background: var(--color-bg-card);
+            border-bottom: 1px solid var(--color-border-light);
+        }
+        
+        html[data-theme="dark"] .flatpickr-current-month .flatpickr-monthDropdown-months,
+        html[data-theme="dark"] .flatpickr-current-month input.cur-year {
+            color: var(--color-text-primary);
+            background: var(--color-bg-secondary);
+        }
+        
+        html[data-theme="dark"] .flatpickr-weekdays {
+            background: var(--color-bg-card);
+        }
+        
+        html[data-theme="dark"] span.flatpickr-weekday {
+            color: var(--color-text-secondary);
+        }
+        
+        html[data-theme="dark"] .flatpickr-day {
+            color: var(--color-text-primary);
+        }
+        
+        html[data-theme="dark"] .flatpickr-day:hover:not(.flatpickr-disabled) {
+            background: rgba(77, 141, 148, 0.10);
+            border-color: var(--color-accent);
+        }
+        
+        html[data-theme="dark"] .flatpickr-day.selected,
+        html[data-theme="dark"] .flatpickr-day.startRange,
+        html[data-theme="dark"] .flatpickr-day.endRange {
+            background: var(--color-accent);
+            border-color: var(--color-accent);
+            color: white;
+        }
+        
+        html[data-theme="dark"] .flatpickr-day.today {
+            border-color: var(--color-accent);
+        }
+        
+        html[data-theme="dark"] .flatpickr-months .flatpickr-prev-month svg,
+        html[data-theme="dark"] .flatpickr-months .flatpickr-next-month svg {
+            fill: var(--color-text-primary);
+        }
+        
+        /* Modo Claro */
+        html[data-theme="light"] .flatpickr-calendar {
+            background: #d1d1d1;
+            border: 1px solid #e0e0e0;
+        }
+        
+        html[data-theme="light"] .flatpickr-months {
+            background: #d1d1d1;
+        }
+        
+        html[data-theme="light"] .flatpickr-weekdays {
+            background: #d1d1d1;
+        }
+        
+        html[data-theme="light"] .flatpickr-day {
+            color: #222;
+        }
+        
+        html[data-theme="light"] .flatpickr-day:hover:not(.flatpickr-disabled) {
+            background: rgba(77, 141, 148, 0.10);
+            border-color: var(--color-accent);
+        }
+        
+        html[data-theme="light"] .flatpickr-day.selected,
+        html[data-theme="light"] .flatpickr-day.startRange,
+        html[data-theme="light"] .flatpickr-day.endRange {
+            background: var(--color-accent);
+            border-color: var(--color-accent);
+            color: white;
+        }
+        
+        html[data-theme="light"] .flatpickr-day.today {
+            border-color: var(--color-accent);
+        }
+        
+        /* Colores de disponibilidad - Días disponibles (verde) */
+        .flatpickr-day.available:not(.flatpickr-disabled):not(.selected) {
+            background: var(--color-success) !important;
+            color: white !important;
+            border-color: var(--color-success) !important;
+        }
+        
+        /* Colores de disponibilidad - Días NO disponibles (rojo) */
+        .flatpickr-day.unavailable,
+        .flatpickr-day.flatpickr-disabled,
+        .flatpickr-day.unavailable.flatpickr-disabled {
+            background: var(--color-error) !important;
+            color: white !important;
+            opacity: 0.7 !important;
+            border-color: var(--color-error) !important;
+            cursor: not-allowed !important;
+        }
+        
+        /* Asegurar que el hover no cambie los colores base */
+        .flatpickr-day.unavailable:hover,
+        .flatpickr-day.flatpickr-disabled:hover {
+            background: var(--color-error) !important;
+            color: white !important;
+        }
+        
+        .flatpickr-day.available:hover:not(.flatpickr-disabled):not(.selected) {
+            background: var(--color-success) !important;
+            color: white !important;
+            filter: brightness(1.1);
+        }
+    </style>
     
     <div class="sn-reservar max-w-5xl mx-auto px-4 py-10">
         <header class="mb-8 text-center">
@@ -166,14 +285,12 @@
                         const dateStr = `${y}-${m}-${d}`;
 
                         if (checkinDates.includes(dateStr) || blockedDates.includes(dateStr)) {
-                            dayElem.style.backgroundColor = '#ffebee';
-                            dayElem.style.color = '#c62828';
+                            dayElem.classList.add('unavailable');
                             dayElem.title = checkinDates.includes(dateStr)
                                 ? 'Check-in programado - no disponible'
                                 : 'Noche ocupada - no disponible';
                         } else {
-                            dayElem.style.backgroundColor = '#e8f5e9';
-                            dayElem.style.color = '#2e7d32';
+                            dayElem.classList.add('available');
                             dayElem.title = 'Disponible';
                         }
                     }
@@ -226,10 +343,9 @@
                         const dateStr = `${y}-${m}-${d}`;
 
                         if (blockedDates.includes(dateStr)) {
-                            dayElem.style.backgroundColor = '#ffebee';
-                            dayElem.style.color = '#c62828';
+                            dayElem.classList.add('unavailable');
                         } else {
-                            dayElem.style.backgroundColor = '#e8f5e9';
+                            dayElem.classList.add('available');
                         }
                     }
                 });
